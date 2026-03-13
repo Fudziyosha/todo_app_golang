@@ -1,0 +1,10 @@
+postgres:
+  host: localhost
+  port: 5432
+  user: example
+  password : example
+  database: example
+
+logger_lvl: info
+
+statics: true
