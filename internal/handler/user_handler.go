@@ -1,0 +1,204 @@
+package handler
+
+import (
+	"errors"
+	"fmt"
+	"net/http"
+	"web_todos/internal/entities"
+	"web_todos/internal/service"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/session"
+	"github.com/sirupsen/logrus"
+)
+
+const sessionUserIDKey = "user_id"
+const sessionAuthenticated = "authenticated"
+
+func (h *Handler) UserRegistration(c fiber.Ctx) error {
+	errorsField := make(map[string]string)
+
+	user := new(entities.User)
+
+	if c.Method() == http.MethodPost {
+		err := c.Bind().Form(user)
+		if err != nil {
+			logrus.Error("user_handler: failed parse form user ", err)
+			return err
+		}
+
+		err = h.validate.Validate(user)
+		var validationErrors validator.ValidationErrors
+		if errors.As(err, &validationErrors) {
+			for _, e := range validationErrors {
+				if e.Field() == "Password" {
+					errorsField["Password"] = "Password minimum 8 character"
+				}
+				if e.Field() == "Email" {
+					errorsField["Email"] = "Incorrect Email"
+				}
+			}
+			return c.Render("register", fiber.Map{
+				"Password": errorsField["Password"],
+				"Email":    errorsField["Email"],
+			})
+		}
+
+		hash, err := service.HashPassword(user.Password)
+		if err != nil {
+			logrus.Error("user_handler: failed hash password ", err)
+			return err
+		}
+
+		err = h.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash)
+		if err != nil {
+			logrus.Error("user_handler: failed create user in handler ", err)
+			return err
+		}
+		return c.Redirect().To("/user/login")
+
+	}
+	return c.Render("register", nil)
+}
+
+func (h *Handler) UserLogin(c fiber.Ctx) error {
+	user := new(entities.User)
+
+	err := c.Bind().Form(user)
+
+	hash, err := h.repo.User.UserAuth(c, user.Email)
+	if err != nil {
+		logrus.Error("user_handler: failed login ", err)
+		return err
+	}
+
+	err = service.ValidatePassword(hash, user.Password)
+	if err != nil {
+		return c.Redirect().To("/user/register")
+	}
+
+	userID, err := h.repo.User.GetUserID(c, user.Email)
+	if err != nil {
+		logrus.Error("user_handler: failed get user id ", err)
+		return err
+	}
+
+	stringUUID := userID.String()
+
+	sess := session.FromContext(c)
+
+	err = sess.Regenerate()
+	if err != nil {
+		logrus.Error("user_handler: failed regenerate session id ", err)
+		return err
+	}
+	sess.Set(sessionUserIDKey, stringUUID)
+	sess.Set(sessionAuthenticated, true)
+
+	return c.Redirect().To("/")
+}
+
+func (h *Handler) Logout(c fiber.Ctx) error {
+	sess := session.FromContext(c)
+
+	err := sess.Destroy()
+	if err != nil {
+		logrus.Error("user_handler: failed destroy the session ", err)
+		return err
+	}
+	return c.Redirect().To("/user/login")
+}
+
+func (h *Handler) GetUserLogin(c fiber.Ctx) error {
+	return c.Render("login", nil)
+}
+
+func (h *Handler) ChangePassword(c fiber.Ctx) error {
+	return c.Render("change_password", nil)
+}
+
+func (h *Handler) UpdateUserSettings(c fiber.Ctx) error {
+	userID, err := h.GetUserIdInSession(c)
+	if err != nil {
+		logrus.Error("user handler: failed parse uuid ", err)
+		return err
+	}
+
+	name := c.FormValue("user_name")
+	if name != "" {
+		err = h.repo.User.UpdateUserName(c, name, userID)
+		if err != nil {
+			logrus.Error("user handler: failed update user name ", err)
+			return err
+		}
+	}
+
+	image, err := c.FormFile("avatar")
+	if err == nil && image != nil {
+		err = c.SaveFile(image, fmt.Sprintf("./uploads/image_avatar/%s", image.Filename))
+		if err != nil {
+			logrus.Error("user_handler: failed save file image ", err)
+			return err
+		}
+
+		err = h.repo.User.UpdateImage(c, image.Filename, "./uploads/image_avatar/"+image.Filename, userID)
+		if err != nil {
+			logrus.Error("user handler: failed update image user ", err)
+			return err
+		}
+	}
+
+	return c.Redirect().To("/")
+}
+
+func (h *Handler) UpdateUserPass(c fiber.Ctx) error {
+	userID, err := h.GetUserIdInSession(c)
+	if err != nil {
+		logrus.Error("user handler: failed parse uuid ", err)
+		return err
+	}
+
+	currentPass := c.FormValue("current_password")
+
+	user, err := h.repo.User.GetUser(c, userID)
+	if err != nil {
+		logrus.Error("user_handler: failed get user pass in db ", err)
+		return err
+	}
+
+	err = service.ValidatePassword(user.Password, currentPass)
+	if err != nil {
+		logrus.Error("user_handler: pass is invalid ")
+		return c.Render("change_password", fiber.Map{
+			"Password": "Current password is not valid",
+		})
+	}
+
+	val := validator.New()
+
+	newPass := c.FormValue("user-password")
+	err = val.Var(newPass, "required,min=8")
+	if err != nil {
+		return c.Render("change_password", fiber.Map{
+			"Password": "Password minimum 8 character",
+		})
+	}
+
+	confirmPass := c.FormValue("confirm_password")
+	if newPass != confirmPass {
+		return c.Render("change_password", fiber.Map{
+			"UpdatePassword": "Wrong password",
+		})
+	}
+
+	newHashPass, err := service.HashPassword(newPass)
+	if err != nil {
+		logrus.Error("user handler: failed hashed new pass ", err)
+		return err
+	}
+
+	err = h.repo.User.UpdateUserPass(c, newHashPass, userID)
+
+	return c.Redirect().To("/")
+}
