@@ -19,7 +19,7 @@ func Connect(ctx context.Context) (*pgx.Conn, error) {
 
 	connConfig.Tracer = &tracelog.TraceLog{
 		Logger:   pgxlogrus.NewLogger(logrus.WithField("module", "db")),
-		LogLevel: tracelog.LogLevel(logrus.InfoLevel),
+		LogLevel: tracelog.LogLevel(logrus.ErrorLevel),
 		Config:   tracelog.DefaultTraceLogConfig(),
 	}
 
