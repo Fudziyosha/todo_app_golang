@@ -5,6 +5,12 @@ postgres:
   password : example
   database: example
 
-logger_lvl: info
+logger:
+  logger_lvl: error
 
-statics: true
+serve:
+  statics: true
+  Prefork: true
+
+middleware:
+  AbsoluteCookieTimeout: 24h
