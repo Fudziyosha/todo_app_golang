@@ -1,13 +1,12 @@
 package middleware
 
 import (
-	"time"
-
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/compress"
 	"github.com/gofiber/fiber/v3/middleware/logger"
 	"github.com/gofiber/fiber/v3/middleware/session"
 	"github.com/gofiber/storage/redis/v3"
+	"github.com/spf13/viper"
 )
 
 func InitMiddleware(app *fiber.App) {
@@ -25,6 +24,6 @@ func InitMiddleware(app *fiber.App) {
 		Storage:         redisStorage,
 		CookieSecure:    true,
 		CookieHTTPOnly:  true,
-		AbsoluteTimeout: 24 * time.Hour,
+		AbsoluteTimeout: viper.GetDuration("middleware.AbsoluteCookieTimeout"),
 	}))
 }

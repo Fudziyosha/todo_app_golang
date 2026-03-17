@@ -21,8 +21,8 @@ func Serve(todoModel *repository.Repository) {
 		Views: engine,
 	})
 
-	statics := viper.GetString("statics")
-	if statics == "true" {
+	statics := viper.GetBool("serve.statics")
+	if statics == true {
 		app.Use("/static", static.New("./static"))
 		app.Use("/uploads", static.New("./uploads"))
 	}
@@ -36,6 +36,6 @@ func Serve(todoModel *repository.Repository) {
 	}
 
 	log.Fatal(app.Listen(":3000"), fiber.ListenConfig{
-		EnablePrefork: true,
+		EnablePrefork: viper.GetBool("serve.Prefork"),
 	})
 }

@@ -10,7 +10,7 @@ import (
 func InitLogger() error {
 	logrus.New()
 
-	logLevel := viper.GetString("logger_lvl")
+	logLevel := viper.GetString("logger.logger_lvl")
 	level, err := logrus.ParseLevel(logLevel)
 	if err != nil {
 		logrus.Error("logging: failed parse lvl ", err)
