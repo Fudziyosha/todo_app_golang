@@ -30,10 +30,12 @@
       <form method="post">
         <div class="mb-4">
           <input type="email" name="user-email" class="form-control" placeholder="Email" required>
+          <div class="login-user-error">{{ .Email }}</div>
         </div>
 
         <div class="mb-4">
           <input type="password" name="user-password" class="form-control" placeholder="Password" required>
+            <div class="login-user-error">{{ .Password }}</div>
         </div>
 
         <button type="submit" class="btn btn-login w-100">Log In</button>

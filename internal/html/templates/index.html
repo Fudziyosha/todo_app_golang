@@ -219,10 +219,13 @@
                     </div>
                 </section>
                 <section class="todos-scroll">
-                    {{ if .Todo }}
-                        {{ range .Todo }}
+                    {{ with .List }}
+                        {{ range . }}
                             <div class="container todo-list">
                                 <form method="post" class="todo-inline-form">
+                                {{ if eq .ID $.ActiveListID }}
+                                    {{ with .Todos }}
+                                        {{ range . }}
                                     <input type="hidden" name="todo_id" value="{{ .ID }}">
 
                                     <div class="todo-item-row ">
@@ -282,6 +285,9 @@
                                             </button>
                                         </div>
                                     </div>
+                                        {{ end }}
+                                    {{ end }}
+                                {{ end }}
                                 </form>
                             </div>
                         {{ end }}
