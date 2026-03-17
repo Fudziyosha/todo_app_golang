@@ -16,10 +16,6 @@ func RegisterRoutes(h *handler.Handler, app *fiber.App) error {
 	lists.Get("/:id/:filters", h.GetTasksByUser)
 	lists.Post("/:id/:filters", h.TaskHandler)
 
-	//Todo update
-	//lists.Get("/todo/:id", h.UpdateTodoDescriptionById)
-	//lists.Post("/todo/:id", h.UpdateTodoDescriptionById)
-
 	//User route
 	user := app.Group("/user")
 
