@@ -102,11 +102,15 @@ func (h *Handler) GetTasksByUser(c fiber.Ctx) error {
 
 	pageMode, taskStatus := h.checkFilters(c)
 
-	lists, todos, user, err := h.selectListsUserTodos(c, userID, listID, taskStatus)
+	listsSlice, user, err := h.selectListsUserTodos(c, userID, taskStatus)
+	if err != nil {
+		logrus.Error("todo handler: failed select lists with todos ", err)
+		return err
+	}
 
 	return c.Render("index", fiber.Map{
-		"Todo":         todos,
-		"List":         lists,
+		"Todo":         listsSlice,
+		"List":         listsSlice,
 		"ActiveListID": listID,
 		"filters":      pageMode,
 		"User":         user,
@@ -192,11 +196,15 @@ func (h *Handler) TaskHandler(c fiber.Ctx) error {
 
 	pageMode, taskStatus := h.checkFilters(c)
 
-	lists, todos, user, err := h.selectListsUserTodos(c, userID, listID, taskStatus)
+	listsSlice, user, err := h.selectListsUserTodos(c, userID, taskStatus)
+	if err != nil {
+		logrus.Error("todo handler: failed select lists with todos ", err)
+		return err
+	}
 
 	return c.Render("index", fiber.Map{
-		"Todo":         todos,
-		"List":         lists,
+		"Todo":         listsSlice,
+		"List":         listsSlice,
 		"ActiveListID": listID,
 		"filters":      pageMode,
 		"User":         user,
@@ -250,23 +258,22 @@ func (h *Handler) checkFilters(c fiber.Ctx) (string, bool) {
 	return filters, defaultBool
 }
 
-func (h *Handler) selectListsUserTodos(c fiber.Ctx, userID, listID uuid.UUID, taskStatus bool) ([]entities.List, []entities.Todo, entities.User, error) {
-	lists, err := h.repo.Todo.GetListsById(c, userID)
+func (h *Handler) selectListsUserTodos(c fiber.Ctx, userID uuid.UUID, taskStatus bool) ([]entities.List, entities.User, error) {
+	listsSlice, err := h.repo.Todo.GetListsById(c, userID)
 	if err != nil {
-		logrus.Error("todo handler: failed get lists ", err)
-		return []entities.List{}, []entities.Todo{}, entities.User{}, err
+		logrus.Error("todo handler: failed get list by user ", err)
+		return []entities.List{}, entities.User{}, err
 	}
 
-	todos, err := h.repo.Todo.GetTodosByList(c, listID, taskStatus)
-	if err != nil {
-		logrus.Error("todo handler: failed get todos ", err)
-		return []entities.List{}, []entities.Todo{}, entities.User{}, err
+	for i, val := range listsSlice {
+		sliceTasks, _ := h.repo.Todo.GetTodosByList(c, val.ID, taskStatus)
+		listsSlice[i].Todos = append(val.Todos, sliceTasks...)
 	}
 
 	user, err := h.repo.User.GetUser(c, userID)
 	if err != nil {
 		logrus.Error("todo handler: failed get user ", err)
-		return []entities.List{}, []entities.Todo{}, entities.User{}, err
+		return []entities.List{}, entities.User{}, err
 	}
-	return lists, todos, user, nil
+	return listsSlice, user, nil
 }
