@@ -66,16 +66,33 @@ func (h *Handler) UserLogin(c fiber.Ctx) error {
 	user := new(entities.User)
 
 	err := c.Bind().Form(user)
+	if err != nil {
+		logrus.Error("user_handler: failed get user form ", err)
+		return err
+	}
+
+	err = h.validate.Validate(user)
+	if err != nil {
+		logrus.Error("user_handler: failed parse email address ", err)
+		return c.Render("login", fiber.Map{
+			"Email": "Incorrect email",
+		})
+	}
 
 	hash, err := h.repo.User.UserAuth(c, user.Email)
 	if err != nil {
 		logrus.Error("user_handler: failed login ", err)
-		return err
+		return c.Render("login", fiber.Map{
+			"Email": "Incorrect email",
+		})
 	}
 
 	err = service.ValidatePassword(hash, user.Password)
 	if err != nil {
-		return c.Redirect().To("/user/register")
+		logrus.Error("user_handler: failed login ", err)
+		return c.Render("login", fiber.Map{
+			"Password": "Wrong password",
+		})
 	}
 
 	userID, err := h.repo.User.GetUserID(c, user.Email)
