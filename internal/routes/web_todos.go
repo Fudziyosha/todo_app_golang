@@ -19,13 +19,13 @@ func RegisterRoutes(h *handler.Handler, app *fiber.App) error {
 	//User route
 	user := app.Group("/user")
 
-	user.Get("/register", h.UserRegistration)
+	user.Get("/register", h.GetRegistrationPage)
 	user.Post("/register", h.UserRegistration)
 
 	user.Get("/login", h.GetUserLogin)
 	user.Post("/login", h.UserLogin)
 
-	user.Post("/settings", h.UpdateUserSettings)
+	user.Post("/settings", h.UpdateUserNameAndAvatar)
 
 	user.Get("/change-password", h.ChangePassword)
 	user.Post("/change-password", h.UpdateUserPass)
