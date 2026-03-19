@@ -62,28 +62,62 @@
                         <p class="email-profile">{{ .User.Email }}</p>
                     </div>
                 </div>
-                <div class="lists-panel">
+                <div class="lists-panel" id="listsPanel">
                     <div class="lists-title">My Lists</div>
 
                     <div class="lists-scroll">
                         {{ if .List }}
                             {{ range .List }}
-                                <a class="list-row {{ if eq .ID $.ActiveListID }}is-active{{ end }}" href="/list/{{ .ID }}/active">
-                                    <span class="list-row__name">{{ .Name }}</span>
-                                </a>
+                                <div class="list-row {{ if eq .ID $.ActiveListID }}is-active{{ end }}">
+                                    <a class="list-row__link" href="/list/{{ .ID }}/active">
+                                        <span class="list-row__name">{{ .Name }}</span>
+                                    </a>
+
+                                    <form method="post" class="list-row__delete-form">
+                                        <input type="hidden" name="list_id" value="{{ .ID }}">
+                                        <button type="submit" name="action" value="delete_list" class="list-row__delete" aria-label="Delete list">
+                                            <i class="bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             {{ end }}
                         {{ end }}
                     </div>
 
-                    <button type="button" class="new-list-btn" data-bs-toggle="modal" data-bs-target="#newListModal">
-                        + New List
-                    </button>
+                    <div class="lists-actions">
+                        <button type="button" class="sidebar-action-btn sidebar-action-btn--cancel" id="cancelDeleteListsBtn">
+                            Cancel
+                        </button>
+                        <button type="button" class="sidebar-action-btn sidebar-action-btn--delete" id="toggleDeleteListsBtn">
+                            Delete List
+                        </button>
+                    </div>
                 </div>
 
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const panel = document.getElementById("listsPanel");
+        const toggleButton = document.getElementById("toggleDeleteListsBtn");
+        const cancelButton = document.getElementById("cancelDeleteListsBtn");
+
+        if (!panel || !toggleButton || !cancelButton) {
+            return;
+        }
+
+        toggleButton.addEventListener("click", function () {
+            panel.classList.add("lists-panel--delete-mode");
+        });
+
+        cancelButton.addEventListener("click", function () {
+            panel.classList.remove("lists-panel--delete-mode");
+        });
+    });
+</script>
 
 <div class="modal fade" id="newListModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
