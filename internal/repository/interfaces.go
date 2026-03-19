@@ -29,6 +29,7 @@ type TodoRepositoryHandler interface {
 	DeleteTodoById(ctx context.Context, todoId uuid.UUID) error
 	UpdateTodoDescriptionById(ctx context.Context, newDescription string, timeUpdate time.Time, currentTodoId uuid.UUID) error
 	UpdateTodoStatusById(ctx context.Context, status bool, timeUpdate time.Time, currentTodoId uuid.UUID) error
+	DeleteListById(ctx context.Context, listID uuid.UUID) error
 }
 
 type UserRepositoryHandler interface {
