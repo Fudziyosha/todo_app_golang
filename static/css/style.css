@@ -266,12 +266,11 @@ a:hover {
 }
 
 .list-row {
+    position: relative;
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 10px 10px;
     border-radius: 12px;
-    text-decoration: none;
     color: rgba(255, 255, 255, 0.86);
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(158, 120, 207, 0.14);
@@ -291,6 +290,20 @@ a:hover {
     color: #120a1c;
 }
 
+.list-row__link {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    padding: 16px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+}
+
+.list-row__link:hover {
+    color: inherit;
+}
+
 .list-row__name {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -299,22 +312,117 @@ a:hover {
     font-size: 13px;
 }
 
-.new-list-btn {
+.list-row__delete {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.56);
+    cursor: pointer;
+    transition: 0.18s ease;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.list-row__delete .bi-trash3 {
+    font-size: 14px;
+}
+
+.list-row__delete:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+}
+
+.list-row.is-active .list-row__delete {
+    background: rgba(18, 10, 28, 0.14);
+    color: rgba(18, 10, 28, 0.68);
+}
+
+.list-row.is-active .list-row__delete:hover {
+    background: rgba(18, 10, 28, 0.24);
+    color: #120a1c;
+}
+
+.list-row__delete-form {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    margin: 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.lists-panel--delete-mode .list-row__delete-form {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.lists-panel--delete-mode .list-row__delete {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.lists-panel--delete-mode .list-row__link {
+    padding-right: 52px;
+}
+
+.lists-actions {
+    margin-top: auto;
+    padding: 6px 4px 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.sidebar-action-btn {
     width: 100%;
+    min-height: 40px;
     padding: 10px 12px;
     border-radius: 12px;
-    border: 1px dashed rgba(158, 120, 207, 0.35);
-    background: transparent;
-    color: rgba(255, 255, 255, 0.72);
-    text-align: left;
-    cursor: pointer;
+    border: 1px solid rgba(158, 120, 207, 0.22);
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
     transition: 0.18s ease;
 }
 
-.new-list-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.9);
-    border-color: rgba(199, 157, 255, 0.6);
+.sidebar-action-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(199, 157, 255, 0.42);
+}
+
+.sidebar-action-btn--delete {
+    background: rgba(120, 24, 44, 0.16);
+    border-color: rgba(255, 123, 154, 0.2);
+    color: rgba(255, 208, 218, 0.92);
+}
+
+.sidebar-action-btn--delete:hover {
+    background: rgba(120, 24, 44, 0.24);
+    border-color: rgba(255, 123, 154, 0.34);
+    color: #fff;
+}
+
+.sidebar-action-btn--cancel {
+    display: none;
+}
+
+.lists-panel--delete-mode .sidebar-action-btn--cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* =========================
