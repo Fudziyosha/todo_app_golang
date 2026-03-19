@@ -133,3 +133,16 @@ func (t *TodoRepository) UpdateTodoStatusById(ctx context.Context, status bool, 
 
 	return nil
 }
+
+func (t *TodoRepository) DeleteListById(ctx context.Context, listID uuid.UUID) error {
+	query := `DELETE FROM list WHERE id = $1;`
+
+	row, err := t.Database.Query(ctx, query, listID)
+	if err != nil {
+		logrus.Error("todo repository: failed delete list ", err)
+		return err
+	}
+	row.Close()
+
+	return nil
+}
