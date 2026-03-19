@@ -3,7 +3,6 @@ package handler
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"web_todos/internal/entities"
 	"web_todos/internal/service"
 
@@ -16,50 +15,51 @@ import (
 const sessionUserIDKey = "user_id"
 const sessionAuthenticated = "authenticated"
 
+func (h *Handler) GetRegistrationPage(c fiber.Ctx) error {
+	return c.Render("register", nil)
+}
+
 func (h *Handler) UserRegistration(c fiber.Ctx) error {
 	errorsField := make(map[string]string)
 
 	user := new(entities.User)
 
-	if c.Method() == http.MethodPost {
-		err := c.Bind().Form(user)
-		if err != nil {
-			logrus.Error("user_handler: failed parse form user ", err)
-			return err
-		}
-
-		err = h.validate.Validate(user)
-		var validationErrors validator.ValidationErrors
-		if errors.As(err, &validationErrors) {
-			for _, e := range validationErrors {
-				if e.Field() == "Password" {
-					errorsField["Password"] = "Password minimum 8 character"
-				}
-				if e.Field() == "Email" {
-					errorsField["Email"] = "Incorrect Email"
-				}
-			}
-			return c.Render("register", fiber.Map{
-				"Password": errorsField["Password"],
-				"Email":    errorsField["Email"],
-			})
-		}
-
-		hash, err := service.HashPassword(user.Password)
-		if err != nil {
-			logrus.Error("user_handler: failed hash password ", err)
-			return err
-		}
-
-		err = h.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash)
-		if err != nil {
-			logrus.Error("user_handler: failed create user in handler ", err)
-			return err
-		}
-		return c.Redirect().To("/user/login")
-
+	err := c.Bind().Form(user)
+	if err != nil {
+		logrus.Error("user_handler: failed parse form user ", err)
+		return err
 	}
-	return c.Render("register", nil)
+
+	err = h.validate.Validate(user)
+	var validationErrors validator.ValidationErrors
+	if errors.As(err, &validationErrors) {
+		for _, e := range validationErrors {
+			if e.Field() == "Password" {
+				errorsField["Password"] = "Password minimum 8 character"
+			}
+			if e.Field() == "Email" {
+				errorsField["Email"] = "Incorrect Email"
+			}
+		}
+		return c.Render("register", fiber.Map{
+			"Password": errorsField["Password"],
+			"Email":    errorsField["Email"],
+		})
+	}
+
+	hash, err := service.HashPassword(user.Password)
+	if err != nil {
+		logrus.Error("user_handler: failed hash password ", err)
+		return err
+	}
+
+	err = h.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash)
+	if err != nil {
+		logrus.Error("user_handler: failed create user in handler ", err)
+		return err
+	}
+
+	return c.Redirect().To("/user/login")
 }
 
 func (h *Handler) UserLogin(c fiber.Ctx) error {
@@ -135,7 +135,7 @@ func (h *Handler) ChangePassword(c fiber.Ctx) error {
 	return c.Render("change_password", nil)
 }
 
-func (h *Handler) UpdateUserSettings(c fiber.Ctx) error {
+func (h *Handler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 	userID, err := h.GetUserIdInSession(c)
 	if err != nil {
 		logrus.Error("user handler: failed parse uuid ", err)
