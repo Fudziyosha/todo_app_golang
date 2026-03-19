@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"time"
 	"web_todos/internal/entities"
 
@@ -23,20 +24,9 @@ func (h *Handler) GetHome(c fiber.Ctx) error {
 		return err
 	}
 
-	listsSlice, err := h.repo.Todo.GetListsById(c, userID)
+	listsSlice, user, err := h.selectListsUserTodos(c, userID, false)
 	if err != nil {
-		logrus.Error("todo handler: failed get home repo ", err)
-		return err
-	}
-
-	for i, val := range listsSlice {
-		sliceTasks, _ := h.repo.Todo.GetTodosByList(c, val.ID, false)
-		listsSlice[i].Todos = append(val.Todos, sliceTasks...)
-	}
-
-	user, err := h.repo.User.GetUser(c, userID)
-	if err != nil {
-		logrus.Error("todo handler: failed get user ", err)
+		logrus.Error("todo handler: failed get lists and user ", err)
 		return err
 	}
 
@@ -69,21 +59,7 @@ func (h *Handler) CreateListInHomePage(c fiber.Ctx) error {
 		}
 	}
 
-	lists, err := h.repo.Todo.GetListsById(c, userID)
-	if err != nil {
-		logrus.Error("todo handler: failed get lists ", err)
-		return err
-	}
-	user, err := h.repo.User.GetUser(c, userID)
-	if err != nil {
-		logrus.Error("todo handler: failed get user ", err)
-		return err
-	}
-
-	return c.Render("index", fiber.Map{
-		"List": lists,
-		"User": user,
-	})
+	return c.Redirect().To("/")
 }
 
 func (h *Handler) GetTasksByUser(c fiber.Ctx) error {
@@ -192,23 +168,17 @@ func (h *Handler) TaskHandler(c fiber.Ctx) error {
 			logrus.Error("todo_handler: failed update todo status active ", err)
 			return err
 		}
+	case "delete_list":
+		err = h.repo.Todo.DeleteListById(c, listID)
+		if err != nil {
+			logrus.Error("todo_handler: failed delete list by id ", err)
+		}
+		return c.Redirect().To("/")
 	}
 
-	pageMode, taskStatus := h.checkFilters(c)
+	pageMode, _ := h.checkFilters(c)
 
-	listsSlice, user, err := h.selectListsUserTodos(c, userID, taskStatus)
-	if err != nil {
-		logrus.Error("todo handler: failed select lists with todos ", err)
-		return err
-	}
-
-	return c.Render("index", fiber.Map{
-		"Todo":         listsSlice,
-		"List":         listsSlice,
-		"ActiveListID": listID,
-		"filters":      pageMode,
-		"User":         user,
-	})
+	return c.Redirect().To(fmt.Sprintf("/list/%v/%s", listID, pageMode))
 }
 
 func (h *Handler) CreateList(c fiber.Ctx) error {
