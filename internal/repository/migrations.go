@@ -1,20 +1,30 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/sirupsen/logrus"
 )
 
-func UpMigration() error {
-	m, err := migrate.New(
+type Migration struct {
+	postgres *PostgresConfig
+}
+
+func NewMigration(postgres *PostgresConfig) *Migration {
+	return &Migration{postgres: postgres}
+}
+
+func (m *Migration) UpMigration() error {
+	migrations, err := migrate.New(
 		"file://./migrations/postgres",
-		getDataBaseUrl())
+		fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", m.postgres.User, m.postgres.Password, m.postgres.Host, m.postgres.Port, m.postgres.DatabaseName))
 	if err != nil {
-		logrus.Error("repository: failed migrate db ", err)
+		logrus.Error("repository: failed migrations db ", err)
 	}
-	err = m.Up()
+	err = migrations.Up()
 	if err != nil {
 		logrus.Error("repository: failed up ", err)
 	}

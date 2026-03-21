@@ -8,11 +8,18 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/tracelog"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
-func Connect(ctx context.Context) (*pgx.Conn, error) {
-	connConfig, err := pgx.ParseConfig(getDataBaseUrl())
+type Postgres struct {
+	postgres *PostgresConfig
+}
+
+func NewPostgres(postgres *PostgresConfig) *Postgres {
+	return &Postgres{postgres: postgres}
+}
+
+func (p *Postgres) Connect(ctx context.Context) (*pgx.Conn, error) {
+	connConfig, err := pgx.ParseConfig(fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", p.postgres.User, p.postgres.Password, p.postgres.Host, p.postgres.Port, p.postgres.DatabaseName))
 	if err != nil {
 		logrus.Error("Unable to connect to database ", err)
 	}
@@ -29,15 +36,4 @@ func Connect(ctx context.Context) (*pgx.Conn, error) {
 	}
 
 	return connStr, nil
-}
-
-func getDataBaseUrl() string {
-	return fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		viper.GetString("postgres.user"),
-		viper.GetString("postgres.password"),
-		viper.GetString("postgres.host"),
-		viper.GetInt("postgres.port"),
-		viper.GetString("postgres.database"),
-	)
 }

@@ -6,23 +6,22 @@ import (
 	"web_todos/internal/entities"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"github.com/sirupsen/logrus"
 )
 
 type TodoRepository struct {
-	Database *pgx.Conn
+	repository *Repository
 }
 
-func NewTodoRepository(conn *pgx.Conn) *TodoRepository {
-	return &TodoRepository{Database: conn}
+func NewTodoRepository(repository *Repository) *TodoRepository {
+	return &TodoRepository{repository: repository}
 }
 
 func (t *TodoRepository) CreateList(ctx context.Context, name string, userID uuid.UUID) error {
 	createdAt := time.Now().UTC()
 
 	query := `INSERT INTO List(name,created_by, created_at) VALUES ($1 , $2, $3 );`
-	resultInsert, err := t.Database.Query(ctx, query, name, userID, createdAt)
+	resultInsert, err := t.repository.database.Query(ctx, query, name, userID, createdAt)
 	if err != nil {
 		logrus.Error("repository: failed scan insert List ", err)
 		return err
@@ -37,7 +36,7 @@ func (t *TodoRepository) InsertTodoByList(ctx context.Context, description strin
 	createdAt := time.Now().UTC()
 
 	query := `INSERT INTO Todo(description, status, created_at, created_in_list) VALUES ($1 , $2, $3, $4 );`
-	resultInsert, err := t.Database.Query(ctx, query, description, false, createdAt, listID)
+	resultInsert, err := t.repository.database.Query(ctx, query, description, false, createdAt, listID)
 	if err != nil {
 		logrus.Error("todo repository: failed scan insert List ", err)
 		return err
@@ -53,7 +52,7 @@ func (t *TodoRepository) InsertTodoByList(ctx context.Context, description strin
 
 func (t *TodoRepository) GetListsById(ctx context.Context, userId uuid.UUID) ([]entities.List, error) {
 	query := `SELECT id, name, created_by, created_at, updated_at FROM List WHERE created_by = $1;`
-	rows, err := t.Database.Query(ctx, query, userId)
+	rows, err := t.repository.database.Query(ctx, query, userId)
 	if err != nil {
 		logrus.Error("todo repository: failed select all lists ", err)
 		return nil, err
@@ -75,7 +74,7 @@ func (t *TodoRepository) GetListsById(ctx context.Context, userId uuid.UUID) ([]
 
 func (t *TodoRepository) GetTodosByList(ctx context.Context, id uuid.UUID, status bool) ([]entities.Todo, error) {
 	query := `SELECT id, description, status, updated_at, created_in_list FROM Todo WHERE created_in_list = $1 AND status = $2 ORDER BY created_at DESC ;`
-	rows, err := t.Database.Query(ctx, query, id, status)
+	rows, err := t.repository.database.Query(ctx, query, id, status)
 	if err != nil {
 		logrus.Error("todo repository: failed select all Todo ", err)
 		return nil, err
@@ -98,7 +97,7 @@ func (t *TodoRepository) GetTodosByList(ctx context.Context, id uuid.UUID, statu
 func (t *TodoRepository) DeleteTodoById(ctx context.Context, todoId uuid.UUID) error {
 	query := `DELETE FROM todo WHERE id = $1;`
 
-	row, err := t.Database.Query(ctx, query, todoId)
+	row, err := t.repository.database.Query(ctx, query, todoId)
 	if err != nil {
 		logrus.Error("todo repository: failed delete task ", err)
 		return err
@@ -111,7 +110,7 @@ func (t *TodoRepository) DeleteTodoById(ctx context.Context, todoId uuid.UUID) e
 func (t *TodoRepository) UpdateTodoDescriptionById(ctx context.Context, newDescription string, timeUpdate time.Time, currentTodoId uuid.UUID) error {
 	query := `UPDATE todo SET description = $1, updated_at = $2 WHERE id = $3;`
 
-	row, err := t.Database.Query(ctx, query, newDescription, timeUpdate, currentTodoId)
+	row, err := t.repository.database.Query(ctx, query, newDescription, timeUpdate, currentTodoId)
 	if err != nil {
 		logrus.Error("todo repository: failed delete task ", err)
 		return err
@@ -124,7 +123,7 @@ func (t *TodoRepository) UpdateTodoDescriptionById(ctx context.Context, newDescr
 func (t *TodoRepository) UpdateTodoStatusById(ctx context.Context, status bool, timeUpdate time.Time, currentTodoId uuid.UUID) error {
 	query := `UPDATE todo SET status = $1, updated_at = $2 WHERE id = $3;`
 
-	row, err := t.Database.Query(ctx, query, status, timeUpdate, currentTodoId)
+	row, err := t.repository.database.Query(ctx, query, status, timeUpdate, currentTodoId)
 	if err != nil {
 		logrus.Error("todo repository: failed delete task ", err)
 		return err
@@ -137,7 +136,7 @@ func (t *TodoRepository) UpdateTodoStatusById(ctx context.Context, status bool, 
 func (t *TodoRepository) DeleteListById(ctx context.Context, listID uuid.UUID) error {
 	query := `DELETE FROM list WHERE id = $1;`
 
-	row, err := t.Database.Query(ctx, query, listID)
+	row, err := t.repository.database.Query(ctx, query, listID)
 	if err != nil {
 		logrus.Error("todo repository: failed delete list ", err)
 		return err

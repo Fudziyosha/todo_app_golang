@@ -1,18 +1,19 @@
 package config
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
 func InitConfig() error {
 	err := godotenv.Load()
 	if err != nil {
-		return fmt.Errorf("config: failed load env %w ", err)
+		logrus.Error("config: failed load env %w ", err)
+		return err
 	}
 
 	viper.SetEnvPrefix("WN")

@@ -8,7 +8,7 @@ postgres:
 logger:
   logger_lvl: error
 
-serve:
+server:
   statics: true
   Prefork: true
 

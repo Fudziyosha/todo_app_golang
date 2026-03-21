@@ -6,20 +6,7 @@ import (
 	"web_todos/internal/entities"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
-
-type Repository struct {
-	Todo TodoRepositoryHandler
-	User UserRepositoryHandler
-}
-
-func NewRepository(conn *pgx.Conn) *Repository {
-	return &Repository{
-		Todo: NewTodoRepository(conn),
-		User: NewUserRepository(conn),
-	}
-}
 
 type TodoRepositoryHandler interface {
 	CreateList(ctx context.Context, name string, userID uuid.UUID) error
