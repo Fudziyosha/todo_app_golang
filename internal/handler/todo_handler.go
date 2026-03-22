@@ -28,7 +28,7 @@ func (t *TodoHandler) GetHome(c fiber.Ctx) error {
 		return err
 	}
 
-	listsSlice, user, err := t.selectListsUserTodos(c, userID, false)
+	listsSlice, user, err := t.selectListsAndUserSettings(c, userID, false)
 	if err != nil {
 		logrus.Error("todo handler: failed get lists and user ", err)
 		return err
@@ -82,7 +82,7 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 
 	pageMode, taskStatus := t.checkFilters(c)
 
-	listsSlice, user, err := t.selectListsUserTodos(c, userID, taskStatus)
+	listsSlice, user, err := t.selectListsAndUserSettings(c, userID, taskStatus)
 	if err != nil {
 		logrus.Error("todo handler: failed select lists with todos ", err)
 		return err
@@ -221,7 +221,7 @@ func (t *TodoHandler) checkFilters(c fiber.Ctx) (string, bool) {
 	return filters, defaultBool
 }
 
-func (t *TodoHandler) selectListsUserTodos(c fiber.Ctx, userID uuid.UUID, taskStatus bool) ([]entities.List, entities.User, error) {
+func (t *TodoHandler) selectListsAndUserSettings(c fiber.Ctx, userID uuid.UUID, taskStatus bool) ([]entities.List, entities.User, error) {
 	listsSlice, err := t.repo.Todo.GetListsById(c, userID)
 	if err != nil {
 		logrus.Error("todo handler: failed get list by user ", err)

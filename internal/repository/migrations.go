@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -25,8 +26,11 @@ func (m *Migration) UpMigration() error {
 		logrus.Error("repository: failed migrations db ", err)
 	}
 	err = migrations.Up()
-	if err != nil {
-		logrus.Error("repository: failed up ", err)
+	if !errors.Is(err, migrate.ErrNoChange) && err != nil {
+		logrus.Fatal(err)
 	}
+	defer func(m *migrate.Migrate) {
+		_, _ = m.Close()
+	}(migrations)
 	return nil
 }
