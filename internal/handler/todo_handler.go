@@ -3,6 +3,7 @@ package handler
 import (
 	"fmt"
 	"time"
+	"web_todos/internal/entities"
 	"web_todos/internal/repository"
 
 	"github.com/gofiber/fiber/v3"
@@ -33,7 +34,7 @@ func (t *TodoHandler) GetHome(c fiber.Ctx) error {
 	}
 
 	for i, val := range listsSlice {
-		sliceTasks, _ := t.repo.Todo.GetTodosByList(c, val.ID, false)
+		sliceTasks, _ := t.repo.Todo.GetTodosByListFilter(c, val.ID, false)
 		listsSlice[i].Todos = append(val.Todos, sliceTasks...)
 	}
 
@@ -89,7 +90,18 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 		return err
 	}
 
-	pageMode, taskStatus := t.checkFilters(c)
+	//pageMode, taskStatus := t.checkFilters(c)
+	query := c.Query("filters")
+	var todos []entities.Todo
+
+	switch query {
+	case "completed":
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, true)
+	case "active":
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, false)
+	default:
+		todos, err = t.repo.Todo.GetTodosByList(c, listID)
+	}
 
 	listsSlice, err := t.repo.Todo.GetListsByID(c, userID)
 	if err != nil {
@@ -99,13 +111,11 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 
 	user, err := t.repo.User.GetUser(c, userID)
 
-	todos, err := t.repo.Todo.GetTodosByList(c, listID, taskStatus)
-
 	return c.Render("index", fiber.Map{
 		"Todo":         todos,
 		"List":         listsSlice,
 		"ActiveListID": listID,
-		"filters":      pageMode,
+		"filters":      query,
 		"User":         user,
 	})
 }
@@ -193,9 +203,9 @@ func (t *TodoHandler) TaskHandler(c fiber.Ctx) error {
 		return c.Redirect().To("/")
 	}
 
-	pageMode, _ := t.checkFilters(c)
+	taskBool := c.Query("filters")
 
-	return c.Redirect().To(fmt.Sprintf("/list/%v/%s", listID, pageMode))
+	return c.Redirect().To(fmt.Sprintf("/list/%v?filters=%s", listID, taskBool))
 }
 
 func (t *TodoHandler) CreateList(c fiber.Ctx) error {

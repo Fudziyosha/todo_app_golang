@@ -68,8 +68,8 @@ func (s *Server) RegisterRoutes() error {
 	// Todos route
 	lists := s.app.Group("/list")
 
-	lists.Get("/:id/:filters", s.handler.CheckCookieAuthenticated, s.handler.TodoHandler.GetTasksByUser)
-	lists.Post("/:id/:filters", s.handler.CheckCookieAuthenticated, s.handler.TodoHandler.TaskHandler)
+	lists.Get("/:id", s.handler.CheckCookieAuthenticated, s.handler.TodoHandler.GetTasksByUser)
+	lists.Post("/:id", s.handler.CheckCookieAuthenticated, s.handler.TodoHandler.TaskHandler)
 
 	// User route
 	user := s.app.Group("/user")

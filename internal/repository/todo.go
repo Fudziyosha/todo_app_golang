@@ -68,9 +68,31 @@ func (t *TodoPGRepository) GetListsByID(ctx context.Context, userId uuid.UUID) (
 	return lists, nil
 }
 
-func (t *TodoPGRepository) GetTodosByList(ctx context.Context, id uuid.UUID, status bool) ([]entities.Todo, error) {
+func (t *TodoPGRepository) GetTodosByListFilter(ctx context.Context, id uuid.UUID, status bool) ([]entities.Todo, error) {
 	query := `SELECT id, description, status, updated_at, created_in_list FROM Todo WHERE created_in_list = $1 AND status = $2 ORDER BY created_at DESC ;`
 	rows, err := t.repository.database.Query(ctx, query, id, status)
+	if err != nil {
+		logrus.Error("todo repository: failed select all Todo ", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	var todo entities.Todo
+	var todos []entities.Todo
+	for rows.Next() {
+		err = rows.Scan(&todo.ID, &todo.Description, &todo.Status, &todo.UpdatedAt, &todo.CreatedInList)
+		if err != nil {
+			logrus.Error("todo repository: failed rows scan all Todo ", err)
+			return nil, err
+		}
+		todos = append(todos, todo)
+	}
+	return todos, nil
+}
+
+func (t *TodoPGRepository) GetTodosByList(ctx context.Context, id uuid.UUID) ([]entities.Todo, error) {
+	query := `SELECT id, description, status, updated_at, created_in_list FROM Todo WHERE created_in_list = $1 ORDER BY created_at DESC ;`
+	rows, err := t.repository.database.Query(ctx, query, id)
 	if err != nil {
 		logrus.Error("todo repository: failed select all Todo ", err)
 		return nil, err
