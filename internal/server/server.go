@@ -5,6 +5,7 @@ import (
 	"web_todos/internal/middleware"
 	"web_todos/internal/repository"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
 	"github.com/gofiber/fiber/v3/middleware/static"
@@ -14,7 +15,8 @@ import (
 )
 
 type Server struct {
-	app *fiber.App
+	app     *fiber.App
+	handler *Handler
 }
 
 func NewServer() *Server {
@@ -29,6 +31,20 @@ func NewServer() *Server {
 	}
 }
 
+type Handler struct {
+	todoHandler *handler.TodoHandler
+	userHandler *handler.UserHandler
+	validate    *handler.StructValidator
+}
+
+func NewHandler(repo *repository.Repository) *Handler {
+	return &Handler{
+		validate:    &handler.StructValidator{Validator: validator.New()},
+		todoHandler: handler.NewTodoHandler(repo),
+		userHandler: handler.NewUserHandler(repo),
+	}
+}
+
 func (s *Server) Server(repo *repository.Repository) {
 	statics := viper.GetBool("server.statics")
 	if statics == true {
@@ -37,9 +53,9 @@ func (s *Server) Server(repo *repository.Repository) {
 	}
 
 	middleware.InitMiddleware(s.app)
-	newHandler := handler.NewHandler(repo)
+	s.handler = NewHandler(repo)
 
-	err := s.RegisterRoutes(newHandler, s.app)
+	err := s.RegisterRoutes()
 	if err != nil {
 		logrus.Error("server: failed register routes ", err)
 	}
@@ -49,31 +65,31 @@ func (s *Server) Server(repo *repository.Repository) {
 	})
 }
 
-func (s *Server) RegisterRoutes(h *handler.Handler, app *fiber.App) error {
-	app.Get("/", h.GetHome)
-	app.Post("/", h.CreateListInHomePage)
+func (s *Server) RegisterRoutes() error {
+	s.app.Get("/", s.handler.todoHandler.GetHome)
+	s.app.Post("/", s.handler.todoHandler.CreateListInHomePage)
 
 	// Todos route
-	lists := app.Group("/list")
+	lists := s.app.Group("/list")
 
-	lists.Get("/:id/:filters", h.GetTasksByUser)
-	lists.Post("/:id/:filters", h.TaskHandler)
+	lists.Get("/:id/:filters", s.handler.todoHandler.GetTasksByUser)
+	lists.Post("/:id/:filters", s.handler.todoHandler.TaskHandler)
 
 	// User route
-	user := app.Group("/user")
+	user := s.app.Group("/user")
 
-	user.Get("/register", h.GetRegistrationPage)
-	user.Post("/register", h.UserRegistration)
+	user.Get("/register", s.handler.userHandler.GetRegistrationPage)
+	user.Post("/register", s.handler.userHandler.UserRegistration)
 
-	user.Get("/login", h.GetUserLogin)
-	user.Post("/login", h.UserLogin)
+	user.Get("/login", s.handler.userHandler.GetUserLogin)
+	user.Post("/login", s.handler.userHandler.UserLogin)
 
-	user.Post("/settings", h.UpdateUserNameAndAvatar)
+	user.Post("/settings", s.handler.userHandler.UpdateUserNameAndAvatar)
 
-	user.Get("/change-password", h.ChangePassword)
-	user.Post("/change-password", h.UpdateUserPass)
+	user.Get("/change-password", s.handler.userHandler.ChangePassword)
+	user.Post("/change-password", s.handler.userHandler.UpdateUserPass)
 
-	user.Post("/logout", h.Logout)
+	user.Post("/logout", s.handler.userHandler.Logout)
 
 	return nil
 }

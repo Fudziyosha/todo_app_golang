@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"web_todos/internal/entities"
+	"web_todos/internal/repository"
 	"web_todos/internal/service"
 
 	"github.com/go-playground/validator/v10"
@@ -15,11 +16,23 @@ import (
 const sessionUserIDKey = "user_id"
 const sessionAuthenticated = "authenticated"
 
-func (h *Handler) GetRegistrationPage(c fiber.Ctx) error {
+type UserHandler struct {
+	repo     *repository.Repository
+	validate *StructValidator
+}
+
+func NewUserHandler(repo *repository.Repository) *UserHandler {
+	return &UserHandler{
+		repo:     repo,
+		validate: &StructValidator{Validator: validator.New()},
+	}
+}
+
+func (u *UserHandler) GetRegistrationPage(c fiber.Ctx) error {
 	return c.Render("register", nil)
 }
 
-func (h *Handler) UserRegistration(c fiber.Ctx) error {
+func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
 	errorsField := make(map[string]string)
 
 	user := new(entities.User)
@@ -30,7 +43,7 @@ func (h *Handler) UserRegistration(c fiber.Ctx) error {
 		return err
 	}
 
-	err = h.validate.Validate(user)
+	err = u.validate.Validate(user)
 	var validationErrors validator.ValidationErrors
 	if errors.As(err, &validationErrors) {
 		for _, e := range validationErrors {
@@ -53,7 +66,7 @@ func (h *Handler) UserRegistration(c fiber.Ctx) error {
 		return err
 	}
 
-	err = h.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash)
+	err = u.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash)
 	if err != nil {
 		logrus.Error("user_handler: failed create user in handler ", err)
 		return err
@@ -62,7 +75,7 @@ func (h *Handler) UserRegistration(c fiber.Ctx) error {
 	return c.Redirect().To("/user/login")
 }
 
-func (h *Handler) UserLogin(c fiber.Ctx) error {
+func (u *UserHandler) UserLogin(c fiber.Ctx) error {
 	user := new(entities.User)
 
 	err := c.Bind().Form(user)
@@ -71,7 +84,7 @@ func (h *Handler) UserLogin(c fiber.Ctx) error {
 		return err
 	}
 
-	err = h.validate.Validate(user)
+	err = u.validate.Validate(user)
 	if err != nil {
 		logrus.Error("user_handler: failed parse email address ", err)
 		return c.Render("login", fiber.Map{
@@ -79,7 +92,7 @@ func (h *Handler) UserLogin(c fiber.Ctx) error {
 		})
 	}
 
-	hash, err := h.repo.User.UserAuth(c, user.Email)
+	hash, err := u.repo.User.UserAuth(c, user.Email)
 	if err != nil {
 		logrus.Error("user_handler: failed login ", err)
 		return c.Render("login", fiber.Map{
@@ -95,7 +108,7 @@ func (h *Handler) UserLogin(c fiber.Ctx) error {
 		})
 	}
 
-	userID, err := h.repo.User.GetUserID(c, user.Email)
+	userID, err := u.repo.User.GetUserID(c, user.Email)
 	if err != nil {
 		logrus.Error("user_handler: failed get user id ", err)
 		return err
@@ -116,7 +129,7 @@ func (h *Handler) UserLogin(c fiber.Ctx) error {
 	return c.Redirect().To("/")
 }
 
-func (h *Handler) Logout(c fiber.Ctx) error {
+func (u *UserHandler) Logout(c fiber.Ctx) error {
 	sess := session.FromContext(c)
 
 	err := sess.Destroy()
@@ -127,16 +140,16 @@ func (h *Handler) Logout(c fiber.Ctx) error {
 	return c.Redirect().To("/user/login")
 }
 
-func (h *Handler) GetUserLogin(c fiber.Ctx) error {
+func (u *UserHandler) GetUserLogin(c fiber.Ctx) error {
 	return c.Render("login", nil)
 }
 
-func (h *Handler) ChangePassword(c fiber.Ctx) error {
+func (u *UserHandler) ChangePassword(c fiber.Ctx) error {
 	return c.Render("change_password", nil)
 }
 
-func (h *Handler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
-	userID, err := h.GetUserIdInSession(c)
+func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
+	userID, err := GetUserIdInSession(c)
 	if err != nil {
 		logrus.Error("user handler: failed parse uuid ", err)
 		return err
@@ -144,7 +157,7 @@ func (h *Handler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 
 	name := c.FormValue("user_name")
 	if name != "" {
-		err = h.repo.User.UpdateUserName(c, name, userID)
+		err = u.repo.User.UpdateUserName(c, name, userID)
 		if err != nil {
 			logrus.Error("user handler: failed update user name ", err)
 			return err
@@ -159,7 +172,7 @@ func (h *Handler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 			return err
 		}
 
-		err = h.repo.User.UpdateImage(c, image.Filename, "./uploads/image_avatar/"+image.Filename, userID)
+		err = u.repo.User.UpdateImage(c, image.Filename, "./uploads/image_avatar/"+image.Filename, userID)
 		if err != nil {
 			logrus.Error("user handler: failed update image user ", err)
 			return err
@@ -169,8 +182,8 @@ func (h *Handler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 	return c.Redirect().To("/")
 }
 
-func (h *Handler) UpdateUserPass(c fiber.Ctx) error {
-	userID, err := h.GetUserIdInSession(c)
+func (u *UserHandler) UpdateUserPass(c fiber.Ctx) error {
+	userID, err := GetUserIdInSession(c)
 	if err != nil {
 		logrus.Error("user handler: failed parse uuid ", err)
 		return err
@@ -178,7 +191,7 @@ func (h *Handler) UpdateUserPass(c fiber.Ctx) error {
 
 	currentPass := c.FormValue("current_password")
 
-	user, err := h.repo.User.GetUser(c, userID)
+	user, err := u.repo.User.GetUser(c, userID)
 	if err != nil {
 		logrus.Error("user_handler: failed get user pass in db ", err)
 		return err
@@ -215,7 +228,7 @@ func (h *Handler) UpdateUserPass(c fiber.Ctx) error {
 		return err
 	}
 
-	err = h.repo.User.UpdateUserPass(c, newHashPass, userID)
+	err = u.repo.User.UpdateUserPass(c, newHashPass, userID)
 
 	return c.Redirect().To("/")
 }
