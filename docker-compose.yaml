@@ -4,9 +4,11 @@ services:
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: user
-      POSTGRES_DB: wn_db
+      env_file:
+        .env
+      POSTGRES_USER: ${WN_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${WN_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${WN_POSTGRES_DATABASE}
       PGDATA: /var/lib/postgresql/data
     ports:
       - '127.0.0.1:5432:5432'

@@ -22,7 +22,6 @@ func (c *Config) InitConfig() error {
 	err := godotenv.Load()
 	if err != nil {
 		logrus.Error("config: failed load env %w ", err)
-		return err
 	}
 
 	viper.SetEnvPrefix("WN")
