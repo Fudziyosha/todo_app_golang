@@ -5,6 +5,14 @@ postgres:
   password : example
   database: example
 
-logger_lvl: info
+logger:
+  level: error
 
-statics: true
+server:
+  statics: true
+  Prefork: true
+  AbsoluteCookieTimeout: 24h
+
+config:
+  host: 127.0.0.1
+  port: 3000

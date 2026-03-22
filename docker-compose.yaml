@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: postgres
+    restart: always
+    environment:
+      env_file:
+        .env
+      POSTGRES_USER: ${WN_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${WN_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${WN_POSTGRES_DATABASE}
+      PGDATA: /var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - ./volumes/db:/var/lib/postgresql/data
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - ./volumes/redis-data:/var/lib/redis
+    restart: unless-stopped
+volumes:
+  redis-data:
+    driver: local
