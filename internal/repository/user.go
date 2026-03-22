@@ -8,15 +8,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type UserRepository struct {
+type UserPGRepository struct {
 	repository *Repository
 }
 
-func NewUserRepository(repository *Repository) *UserRepository {
-	return &UserRepository{repository: repository}
+func NewUserRepository(repository *Repository) *UserPGRepository {
+	return &UserPGRepository{repository: repository}
 }
 
-func (u *UserRepository) CreateUser(ctx context.Context, name, surname, email, password string) error {
+func (u *UserPGRepository) CreateUser(ctx context.Context, name, surname, email, password string) error {
 	query := `INSERT INTO users(name, surname, email, password) VALUES ($1 , $2, $3, $4 );`
 	result, err := u.repository.database.Query(ctx, query, name, surname, email, password)
 	if err != nil {
@@ -28,7 +28,7 @@ func (u *UserRepository) CreateUser(ctx context.Context, name, surname, email, p
 	return nil
 }
 
-func (u *UserRepository) UserAuth(ctx context.Context, email string) (hash string, err error) {
+func (u *UserPGRepository) UserAuth(ctx context.Context, email string) (hash string, err error) {
 	query := `SELECT password FROM users WHERE email = ($1);`
 	row := u.repository.database.QueryRow(ctx, query, email)
 	err = row.Scan(&hash)
@@ -40,7 +40,7 @@ func (u *UserRepository) UserAuth(ctx context.Context, email string) (hash strin
 	return hash, nil
 }
 
-func (u *UserRepository) GetUserID(ctx context.Context, email string) (uuid.UUID, error) {
+func (u *UserPGRepository) GetUserID(ctx context.Context, email string) (uuid.UUID, error) {
 	var userID uuid.UUID
 
 	query := `SELECT id FROM users WHERE email = ($1);`
@@ -54,7 +54,7 @@ func (u *UserRepository) GetUserID(ctx context.Context, email string) (uuid.UUID
 	return userID, nil
 }
 
-func (u *UserRepository) GetUser(ctx context.Context, id uuid.UUID) (entities.User, error) {
+func (u *UserPGRepository) GetUser(ctx context.Context, id uuid.UUID) (entities.User, error) {
 	query := `SELECT id, name, surname, email, password ,image_name,path_image FROM users WHERE id = $1;`
 	rows, err := u.repository.database.Query(ctx, query, id)
 	if err != nil {
@@ -74,7 +74,7 @@ func (u *UserRepository) GetUser(ctx context.Context, id uuid.UUID) (entities.Us
 	return user, nil
 }
 
-func (u *UserRepository) UpdateImage(ctx context.Context, name, path string, id uuid.UUID) error {
+func (u *UserPGRepository) UpdateImage(ctx context.Context, name, path string, id uuid.UUID) error {
 	query := `UPDATE users SET image_name = $1, path_image = $2 WHERE id = $3;`
 	result, err := u.repository.database.Query(ctx, query, name, path, id)
 	if err != nil {
@@ -86,7 +86,7 @@ func (u *UserRepository) UpdateImage(ctx context.Context, name, path string, id 
 	return nil
 }
 
-func (u *UserRepository) UpdateUserName(ctx context.Context, name string, id uuid.UUID) error {
+func (u *UserPGRepository) UpdateUserName(ctx context.Context, name string, id uuid.UUID) error {
 	query := `UPDATE users SET name = $1 WHERE id = $2;`
 
 	result, err := u.repository.database.Query(ctx, query, name, id)
@@ -99,7 +99,7 @@ func (u *UserRepository) UpdateUserName(ctx context.Context, name string, id uui
 	return nil
 }
 
-func (u *UserRepository) UpdateUserPass(ctx context.Context, hash string, id uuid.UUID) error {
+func (u *UserPGRepository) UpdateUserPass(ctx context.Context, hash string, id uuid.UUID) error {
 	query := `UPDATE users SET password = $1 WHERE id = $2;`
 
 	result, err := u.repository.database.Query(ctx, query, hash, id)

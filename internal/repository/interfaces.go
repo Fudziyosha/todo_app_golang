@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type TodoRepositoryHandler interface {
+type TodoRepository interface {
 	CreateList(ctx context.Context, name string, userID uuid.UUID) error
 	InsertTodoByList(ctx context.Context, description string, listID uuid.UUID) error
 	GetListsById(ctx context.Context, userId uuid.UUID) ([]entities.List, error)
@@ -19,7 +19,7 @@ type TodoRepositoryHandler interface {
 	DeleteListById(ctx context.Context, listID uuid.UUID) error
 }
 
-type UserRepositoryHandler interface {
+type UserRepository interface {
 	CreateUser(ctx context.Context, name, surname, email, password string) error
 	UserAuth(ctx context.Context, email string) (hash string, err error)
 	GetUserID(ctx context.Context, email string) (uuid.UUID, error)

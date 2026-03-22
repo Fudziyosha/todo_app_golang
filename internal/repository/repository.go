@@ -11,8 +11,8 @@ import (
 )
 
 type Repository struct {
-	Todo     TodoRepositoryHandler
-	User     UserRepositoryHandler
+	Todo     TodoRepository
+	User     UserRepository
 	database *pgx.Conn
 	postgres *PostgresConfig
 }

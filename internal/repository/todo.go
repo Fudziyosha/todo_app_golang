@@ -9,15 +9,15 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type TodoRepository struct {
+type TodoPGRepository struct {
 	repository *Repository
 }
 
-func NewTodoRepository(repository *Repository) *TodoRepository {
-	return &TodoRepository{repository: repository}
+func NewTodoRepository(repository *Repository) *TodoPGRepository {
+	return &TodoPGRepository{repository: repository}
 }
 
-func (t *TodoRepository) CreateList(ctx context.Context, name string, userID uuid.UUID) error {
+func (t *TodoPGRepository) CreateList(ctx context.Context, name string, userID uuid.UUID) error {
 	createdAt := time.Now().UTC()
 
 	query := `INSERT INTO List(name,created_by, created_at) VALUES ($1 , $2, $3 );`
@@ -32,7 +32,7 @@ func (t *TodoRepository) CreateList(ctx context.Context, name string, userID uui
 	return nil
 }
 
-func (t *TodoRepository) InsertTodoByList(ctx context.Context, description string, listID uuid.UUID) error {
+func (t *TodoPGRepository) InsertTodoByList(ctx context.Context, description string, listID uuid.UUID) error {
 	createdAt := time.Now().UTC()
 
 	query := `INSERT INTO Todo(description, status, created_at, created_in_list) VALUES ($1 , $2, $3, $4 );`
@@ -46,11 +46,11 @@ func (t *TodoRepository) InsertTodoByList(ctx context.Context, description strin
 	return nil
 }
 
-//func (t *TodoRepository) CreateListInHomePage(ctx context.Context, name string) error {
+//func (t *TodoPGRepository) CreateListInHomePage(ctx context.Context, name string) error {
 //	return nil
 //}
 
-func (t *TodoRepository) GetListsById(ctx context.Context, userId uuid.UUID) ([]entities.List, error) {
+func (t *TodoPGRepository) GetListsById(ctx context.Context, userId uuid.UUID) ([]entities.List, error) {
 	query := `SELECT id, name, created_by, created_at, updated_at FROM List WHERE created_by = $1;`
 	rows, err := t.repository.database.Query(ctx, query, userId)
 	if err != nil {
@@ -72,7 +72,7 @@ func (t *TodoRepository) GetListsById(ctx context.Context, userId uuid.UUID) ([]
 	return lists, err
 }
 
-func (t *TodoRepository) GetTodosByList(ctx context.Context, id uuid.UUID, status bool) ([]entities.Todo, error) {
+func (t *TodoPGRepository) GetTodosByList(ctx context.Context, id uuid.UUID, status bool) ([]entities.Todo, error) {
 	query := `SELECT id, description, status, updated_at, created_in_list FROM Todo WHERE created_in_list = $1 AND status = $2 ORDER BY created_at DESC ;`
 	rows, err := t.repository.database.Query(ctx, query, id, status)
 	if err != nil {
@@ -94,7 +94,7 @@ func (t *TodoRepository) GetTodosByList(ctx context.Context, id uuid.UUID, statu
 	return todos, err
 }
 
-func (t *TodoRepository) DeleteTodoById(ctx context.Context, todoId uuid.UUID) error {
+func (t *TodoPGRepository) DeleteTodoById(ctx context.Context, todoId uuid.UUID) error {
 	query := `DELETE FROM todo WHERE id = $1;`
 
 	row, err := t.repository.database.Query(ctx, query, todoId)
@@ -107,7 +107,7 @@ func (t *TodoRepository) DeleteTodoById(ctx context.Context, todoId uuid.UUID) e
 	return nil
 }
 
-func (t *TodoRepository) UpdateTodoDescriptionById(ctx context.Context, newDescription string, timeUpdate time.Time, currentTodoId uuid.UUID) error {
+func (t *TodoPGRepository) UpdateTodoDescriptionById(ctx context.Context, newDescription string, timeUpdate time.Time, currentTodoId uuid.UUID) error {
 	query := `UPDATE todo SET description = $1, updated_at = $2 WHERE id = $3;`
 
 	row, err := t.repository.database.Query(ctx, query, newDescription, timeUpdate, currentTodoId)
@@ -120,7 +120,7 @@ func (t *TodoRepository) UpdateTodoDescriptionById(ctx context.Context, newDescr
 	return nil
 }
 
-func (t *TodoRepository) UpdateTodoStatusById(ctx context.Context, status bool, timeUpdate time.Time, currentTodoId uuid.UUID) error {
+func (t *TodoPGRepository) UpdateTodoStatusById(ctx context.Context, status bool, timeUpdate time.Time, currentTodoId uuid.UUID) error {
 	query := `UPDATE todo SET status = $1, updated_at = $2 WHERE id = $3;`
 
 	row, err := t.repository.database.Query(ctx, query, status, timeUpdate, currentTodoId)
@@ -133,7 +133,7 @@ func (t *TodoRepository) UpdateTodoStatusById(ctx context.Context, status bool, 
 	return nil
 }
 
-func (t *TodoRepository) DeleteListById(ctx context.Context, listID uuid.UUID) error {
+func (t *TodoPGRepository) DeleteListById(ctx context.Context, listID uuid.UUID) error {
 	query := `DELETE FROM list WHERE id = $1;`
 
 	row, err := t.repository.database.Query(ctx, query, listID)
