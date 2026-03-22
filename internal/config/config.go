@@ -9,7 +9,16 @@ import (
 	"github.com/spf13/viper"
 )
 
-func InitConfig() error {
+type Config struct {
+	Host int
+	Port int
+}
+
+func NewConfig() *Config {
+	return &Config{}
+}
+
+func (c *Config) InitConfig() error {
 	err := godotenv.Load()
 	if err != nil {
 		logrus.Error("config: failed load env %w ", err)
@@ -26,6 +35,9 @@ func InitConfig() error {
 	if err = viper.ReadInConfig(); err != nil {
 		log.Fatal("config: failed read in config")
 	}
+
+	c.Host = viper.GetInt("config.host")
+	c.Port = viper.GetInt("config.port")
 
 	return nil
 }

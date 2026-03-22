@@ -1,6 +1,8 @@
 package server
 
 import (
+	"fmt"
+	"web_todos/internal/config"
 	"web_todos/internal/handler"
 	"web_todos/internal/repository"
 
@@ -19,9 +21,10 @@ import (
 type Server struct {
 	app     *fiber.App
 	handler *handler.Handler
+	config  *config.Config
 }
 
-func NewServer() *Server {
+func NewServer(config *config.Config) *Server {
 	engine := html.New("./internal/html/templates", ".html")
 
 	app := fiber.New(fiber.Config{
@@ -29,11 +32,12 @@ func NewServer() *Server {
 	})
 
 	return &Server{
-		app: app,
+		app:    app,
+		config: config,
 	}
 }
 
-func (s *Server) Server(repo *repository.Repository) {
+func (s *Server) Server(repo *repository.Repository) error {
 	statics := viper.GetBool("server.statics")
 	if statics == true {
 		s.app.Use("/static", static.New("./static"))
@@ -46,11 +50,15 @@ func (s *Server) Server(repo *repository.Repository) {
 	err := s.RegisterRoutes()
 	if err != nil {
 		logrus.Error("server: failed register routes ", err)
+		return err
 	}
 
-	log.Fatal(s.app.Listen(":3000"), fiber.ListenConfig{
+	handleAddr := fmt.Sprintf("%v:%v", s.config.Host, s.config.Port)
+
+	log.Fatal(s.app.Listen(handleAddr), fiber.ListenConfig{
 		EnablePrefork: viper.GetBool("server.Prefork"),
 	})
+	return nil
 }
 
 func (s *Server) RegisterRoutes() error {
