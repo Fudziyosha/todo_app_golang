@@ -3,7 +3,6 @@ package handler
 import (
 	"fmt"
 	"time"
-	"web_todos/internal/entities"
 	"web_todos/internal/repository"
 
 	"github.com/gofiber/fiber/v3"
@@ -21,16 +20,26 @@ func NewTodoHandler(repo *repository.Repository) *TodoHandler {
 }
 
 func (t *TodoHandler) GetHome(c fiber.Ctx) error {
-
 	userID, err := GetUserIdInSession(c)
 	if err != nil {
 		logrus.Error("todo handler: failed parse uuid ", err)
 		return err
 	}
 
-	listsSlice, user, err := t.selectListsAndUserSettings(c, userID, false)
+	listsSlice, err := t.repo.Todo.GetListsByID(c, userID)
 	if err != nil {
-		logrus.Error("todo handler: failed get lists and user ", err)
+		logrus.Error("todo handler: failed get list by user ", err)
+		return err
+	}
+
+	for i, val := range listsSlice {
+		sliceTasks, _ := t.repo.Todo.GetTodosByList(c, val.ID, false)
+		listsSlice[i].Todos = append(val.Todos, sliceTasks...)
+	}
+
+	user, err := t.repo.User.GetUser(c, userID)
+	if err != nil {
+		logrus.Error("todo handler: failed get user ", err)
 		return err
 	}
 
@@ -82,14 +91,18 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 
 	pageMode, taskStatus := t.checkFilters(c)
 
-	listsSlice, user, err := t.selectListsAndUserSettings(c, userID, taskStatus)
+	listsSlice, err := t.repo.Todo.GetListsByID(c, userID)
 	if err != nil {
-		logrus.Error("todo handler: failed select lists with todos ", err)
+		logrus.Error("todo handler: failed get lists and user ", err)
 		return err
 	}
 
+	user, err := t.repo.User.GetUser(c, userID)
+
+	todos, err := t.repo.Todo.GetTodosByList(c, listID, taskStatus)
+
 	return c.Render("index", fiber.Map{
-		"Todo":         listsSlice,
+		"Todo":         todos,
 		"List":         listsSlice,
 		"ActiveListID": listID,
 		"filters":      pageMode,
@@ -200,7 +213,7 @@ func (t *TodoHandler) CreateList(c fiber.Ctx) error {
 		return err
 	}
 
-	lists, err := t.repo.Todo.GetListsById(c, userId)
+	lists, err := t.repo.Todo.GetListsByID(c, userId)
 	if err != nil {
 		logrus.Error("todo handler: failed get lists ", err)
 		return err
@@ -219,24 +232,4 @@ func (t *TodoHandler) checkFilters(c fiber.Ctx) (string, bool) {
 		defaultBool = true
 	}
 	return filters, defaultBool
-}
-
-func (t *TodoHandler) selectListsAndUserSettings(c fiber.Ctx, userID uuid.UUID, taskStatus bool) ([]entities.List, entities.User, error) {
-	listsSlice, err := t.repo.Todo.GetListsById(c, userID)
-	if err != nil {
-		logrus.Error("todo handler: failed get list by user ", err)
-		return []entities.List{}, entities.User{}, err
-	}
-
-	for i, val := range listsSlice {
-		sliceTasks, _ := t.repo.Todo.GetTodosByList(c, val.ID, taskStatus)
-		listsSlice[i].Todos = append(val.Todos, sliceTasks...)
-	}
-
-	user, err := t.repo.User.GetUser(c, userID)
-	if err != nil {
-		logrus.Error("todo handler: failed get user ", err)
-		return []entities.List{}, entities.User{}, err
-	}
-	return listsSlice, user, nil
 }

@@ -253,13 +253,10 @@
                     </div>
                 </section>
                 <section class="todos-scroll">
-                    {{ with .List }}
-                        {{ range . }}
-                            <div class="container todo-list">
+                    {{ with .Todo }}
+                        <div class="container todo-list">
+                            {{ range . }}
                                 <form method="post" class="todo-inline-form">
-                                {{ if eq .ID $.ActiveListID }}
-                                    {{ with .Todos }}
-                                        {{ range . }}
                                     <input type="hidden" name="todo_id" value="{{ .ID }}">
 
                                     <div class="todo-item-row ">
@@ -297,15 +294,15 @@
 
                                         <div class="todo-actions">
                                             {{ if eq .Status false }}
-                                            <button
-                                                    type="submit"
-                                                    name="action"
-                                                    value="update_todo"
-                                                    class="btn todo-btn-save"
-                                                    title="Save"
-                                            >
-                                                Save
-                                            </button>
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="update_todo"
+                                                        class="btn todo-btn-save"
+                                                        title="Save"
+                                                >
+                                                    Save
+                                                </button>
                                             {{ end }}
 
                                             <button
@@ -319,12 +316,9 @@
                                             </button>
                                         </div>
                                     </div>
-                                        {{ end }}
-                                    {{ end }}
-                                {{ end }}
                                 </form>
-                            </div>
-                        {{ end }}
+                            {{ end }}
+                        </div>
                     {{ else }}
                         <p class="empty-todos">You don`t have todo</p>
                     {{ end }}

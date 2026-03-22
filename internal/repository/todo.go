@@ -46,11 +46,7 @@ func (t *TodoPGRepository) InsertTodoByList(ctx context.Context, description str
 	return nil
 }
 
-//func (t *TodoPGRepository) CreateListInHomePage(ctx context.Context, name string) error {
-//	return nil
-//}
-
-func (t *TodoPGRepository) GetListsById(ctx context.Context, userId uuid.UUID) ([]entities.List, error) {
+func (t *TodoPGRepository) GetListsByID(ctx context.Context, userId uuid.UUID) ([]entities.List, error) {
 	query := `SELECT id, name, created_by, created_at, updated_at FROM List WHERE created_by = $1;`
 	rows, err := t.repository.database.Query(ctx, query, userId)
 	if err != nil {
@@ -69,7 +65,7 @@ func (t *TodoPGRepository) GetListsById(ctx context.Context, userId uuid.UUID) (
 		}
 		lists = append(lists, list)
 	}
-	return lists, err
+	return lists, nil
 }
 
 func (t *TodoPGRepository) GetTodosByList(ctx context.Context, id uuid.UUID, status bool) ([]entities.Todo, error) {
@@ -91,7 +87,7 @@ func (t *TodoPGRepository) GetTodosByList(ctx context.Context, id uuid.UUID, sta
 		}
 		todos = append(todos, todo)
 	}
-	return todos, err
+	return todos, nil
 }
 
 func (t *TodoPGRepository) DeleteTodoById(ctx context.Context, todoId uuid.UUID) error {
