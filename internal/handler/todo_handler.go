@@ -34,7 +34,7 @@ func (t *TodoHandler) GetHome(c fiber.Ctx) error {
 	}
 
 	for i, val := range listsSlice {
-		sliceTasks, _ := t.repo.Todo.GetTodosByListFilter(c, val.ID, false)
+		sliceTasks, _ := t.repo.Todo.GetTodosByListFilter(c, val.ID, "active")
 		listsSlice[i].Todos = append(val.Todos, sliceTasks...)
 	}
 
@@ -96,11 +96,13 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 
 	switch query {
 	case "completed":
-		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, true)
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "completed")
 	case "active":
-		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, false)
-	default:
-		todos, err = t.repo.Todo.GetTodosByList(c, listID)
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "active")
+	case "all":
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "all")
+	case "":
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "")
 	}
 
 	listsSlice, err := t.repo.Todo.GetListsByID(c, userID)
