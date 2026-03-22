@@ -6,11 +6,9 @@ postgres:
   database: example
 
 logger:
-  logger_lvl: error
+  level: error
 
 server:
   statics: true
   Prefork: true
-
-middleware:
   AbsoluteCookieTimeout: 24h

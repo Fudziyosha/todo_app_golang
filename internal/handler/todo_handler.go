@@ -7,7 +7,6 @@ import (
 	"web_todos/internal/repository"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/gofiber/fiber/v3/middleware/session"
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5"
 	"github.com/sirupsen/logrus"
@@ -22,10 +21,6 @@ func NewTodoHandler(repo *repository.Repository) *TodoHandler {
 }
 
 func (t *TodoHandler) GetHome(c fiber.Ctx) error {
-	b := t.CheckCookieAuthenticated(c)
-	if b == false {
-		return c.Redirect().To("/user/login")
-	}
 
 	userID, err := GetUserIdInSession(c)
 	if err != nil {
@@ -214,17 +209,6 @@ func (t *TodoHandler) CreateList(c fiber.Ctx) error {
 	return c.Render("index", fiber.Map{
 		"List": lists,
 	})
-}
-
-func (t *TodoHandler) CheckCookieAuthenticated(c fiber.Ctx) bool {
-	sess := session.FromContext(c)
-	authenticated := sess.Get(sessionAuthenticated)
-
-	if authenticated == nil {
-		return false
-	} else {
-		return true
-	}
 }
 
 func (t *TodoHandler) checkFilters(c fiber.Ctx) (string, bool) {

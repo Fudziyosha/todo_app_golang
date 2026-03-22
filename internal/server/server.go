@@ -2,13 +2,15 @@ package server
 
 import (
 	"web_todos/internal/handler"
-	"web_todos/internal/middleware"
 	"web_todos/internal/repository"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/log"
+	"github.com/gofiber/fiber/v3/middleware/compress"
+	"github.com/gofiber/fiber/v3/middleware/logger"
+	"github.com/gofiber/fiber/v3/middleware/session"
 	"github.com/gofiber/fiber/v3/middleware/static"
+	"github.com/gofiber/storage/redis/v3"
 	"github.com/gofiber/template/html/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -16,7 +18,7 @@ import (
 
 type Server struct {
 	app     *fiber.App
-	handler *Handler
+	handler *handler.Handler
 }
 
 func NewServer() *Server {
@@ -31,20 +33,6 @@ func NewServer() *Server {
 	}
 }
 
-type Handler struct {
-	todoHandler *handler.TodoHandler
-	userHandler *handler.UserHandler
-	validate    *handler.StructValidator
-}
-
-func NewHandler(repo *repository.Repository) *Handler {
-	return &Handler{
-		validate:    &handler.StructValidator{Validator: validator.New()},
-		todoHandler: handler.NewTodoHandler(repo),
-		userHandler: handler.NewUserHandler(repo),
-	}
-}
-
 func (s *Server) Server(repo *repository.Repository) {
 	statics := viper.GetBool("server.statics")
 	if statics == true {
@@ -52,8 +40,8 @@ func (s *Server) Server(repo *repository.Repository) {
 		s.app.Use("/uploads", static.New("./uploads"))
 	}
 
-	middleware.InitMiddleware(s.app)
-	s.handler = NewHandler(repo)
+	s.InitMiddleware()
+	s.handler = handler.NewHandler(repo)
 
 	err := s.RegisterRoutes()
 	if err != nil {
@@ -66,30 +54,49 @@ func (s *Server) Server(repo *repository.Repository) {
 }
 
 func (s *Server) RegisterRoutes() error {
-	s.app.Get("/", s.handler.todoHandler.GetHome)
-	s.app.Post("/", s.handler.todoHandler.CreateListInHomePage)
+	s.app.Get("/", s.handler.CheckCookieAuthenticated, s.handler.TodoHandler.GetHome)
+	s.app.Post("/", s.handler.CheckCookieAuthenticated, s.handler.TodoHandler.CreateListInHomePage)
 
 	// Todos route
 	lists := s.app.Group("/list")
 
-	lists.Get("/:id/:filters", s.handler.todoHandler.GetTasksByUser)
-	lists.Post("/:id/:filters", s.handler.todoHandler.TaskHandler)
+	lists.Get("/:id/:filters", s.handler.CheckCookieAuthenticated, s.handler.TodoHandler.GetTasksByUser)
+	lists.Post("/:id/:filters", s.handler.CheckCookieAuthenticated, s.handler.TodoHandler.TaskHandler)
 
 	// User route
 	user := s.app.Group("/user")
 
-	user.Get("/register", s.handler.userHandler.GetRegistrationPage)
-	user.Post("/register", s.handler.userHandler.UserRegistration)
+	user.Get("/register", s.handler.UserHandler.GetRegistrationPage)
+	user.Post("/register", s.handler.UserHandler.UserRegistration)
 
-	user.Get("/login", s.handler.userHandler.GetUserLogin)
-	user.Post("/login", s.handler.userHandler.UserLogin)
+	user.Get("/login", s.handler.UserHandler.GetUserLogin)
+	user.Post("/login", s.handler.UserHandler.UserLogin)
 
-	user.Post("/settings", s.handler.userHandler.UpdateUserNameAndAvatar)
+	user.Post("/settings", s.handler.CheckCookieAuthenticated, s.handler.UserHandler.UpdateUserNameAndAvatar)
 
-	user.Get("/change-password", s.handler.userHandler.ChangePassword)
-	user.Post("/change-password", s.handler.userHandler.UpdateUserPass)
+	user.Get("/change-password", s.handler.CheckCookieAuthenticated, s.handler.UserHandler.ChangePassword)
+	user.Post("/change-password", s.handler.CheckCookieAuthenticated, s.handler.UserHandler.UpdateUserPass)
 
-	user.Post("/logout", s.handler.userHandler.Logout)
+	user.Post("/logout", s.handler.CheckCookieAuthenticated, s.handler.UserHandler.Logout)
 
 	return nil
+}
+
+func (s *Server) InitMiddleware() {
+	redisStorage := redis.New(redis.Config{
+		Host:     "127.0.0.1",
+		Port:     6379,
+		Username: "",
+		Password: "",
+		Database: 0,
+	})
+
+	s.app.Use(logger.New())
+	s.app.Use(compress.New())
+	s.app.Use(session.New(session.Config{
+		Storage:         redisStorage,
+		CookieSecure:    true,
+		CookieHTTPOnly:  true,
+		AbsoluteTimeout: viper.GetDuration("server.AbsoluteCookieTimeout"),
+	}))
 }
