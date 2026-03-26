@@ -20,7 +20,10 @@
     --radius: 16px;
     --radius-sm: 12px;
 
-    --sidebar-w: 170px;
+    --sidebar-w: 220px;
+    --sidebar-frame-offset: 12px;
+    --content-side-gap: 18px;
+    --bg-image-offset: 54px;
 }
 
 /* =========================
@@ -62,7 +65,7 @@ a:hover {
 ========================= */
 .place-img {
     position: fixed;
-    left: 0;
+    left: max(0px, calc(var(--sidebar-w) - var(--bg-image-offset)));
     bottom: 0;
     z-index: 0;
     pointer-events: none;
@@ -72,7 +75,7 @@ a:hover {
 
 .img-place {
     display: block;
-    width: min(720px, 55vw);
+    width: min(760px, 52vw);
     height: auto;
 }
 
@@ -83,7 +86,7 @@ a:hover {
     position: fixed;
     top: 12px;
     left: 12px;
-    width: calc(var(--sidebar-w) - 12px);
+    width: calc(var(--sidebar-w) - var(--sidebar-frame-offset));
     height: calc(100vh - 24px);
     z-index: 1000;
     background: linear-gradient(180deg, rgba(45, 22, 71, 0.82), rgba(26, 15, 39, 0.9)),
@@ -490,7 +493,7 @@ main.tasks {
 }
 
 .task-view-frame {
-    width: min(1040px, calc(100vw - var(--sidebar-w) - 88px));
+    width: min(1040px, calc(100vw - var(--sidebar-w) - 88px - var(--content-side-gap)));
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -518,7 +521,7 @@ main.tasks {
 }
 
 .home-lists-frame {
-    width: min(1040px, calc(100vw - var(--sidebar-w) - 88px));
+    width: min(1040px, calc(100vw - var(--sidebar-w) - 88px - var(--content-side-gap)));
     min-height: 0;
     display: flex;
     flex-direction: column;
@@ -1615,7 +1618,7 @@ input:-webkit-autofill:active {
 @media (max-width: 991px) {
     .task-view-frame,
     .home-lists-frame {
-        width: min(100%, calc(100vw - var(--sidebar-w) - 28px));
+        width: min(100%, calc(100vw - var(--sidebar-w) - 28px - var(--content-side-gap)));
         padding: 0 10px;
         border-radius: 24px;
     }
@@ -1805,7 +1808,8 @@ input:-webkit-autofill:active {
 
 @media (max-width: 900px) {
     :root {
-        --sidebar-w: 150px;
+        --sidebar-w: 200px;
+        --bg-image-offset: 84px;
     }
 
     main.tasks {
@@ -1838,7 +1842,8 @@ input:-webkit-autofill:active {
 
 @media (max-width: 720px) {
     :root {
-        --sidebar-w: 140px;
+        --sidebar-w: 190px;
+        --bg-image-offset: 96px;
     }
 
     .sun__img {
@@ -1860,7 +1865,8 @@ input:-webkit-autofill:active {
 
 @media (max-width: 560px) {
     :root {
-        --sidebar-w: 120px;
+        --sidebar-w: 170px;
+        --bg-image-offset: 112px;
     }
 
     .name-profile {
