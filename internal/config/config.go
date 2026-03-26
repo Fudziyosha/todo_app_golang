@@ -10,7 +10,7 @@ import (
 )
 
 type Config struct {
-	Host int
+	Host string
 	Port int
 }
 
@@ -35,7 +35,7 @@ func (c *Config) InitConfig() error {
 		log.Fatal("config: failed read in config")
 	}
 
-	c.Host = viper.GetInt("config.host")
+	c.Host = viper.GetString("config.host")
 	c.Port = viper.GetInt("config.port")
 
 	return nil
