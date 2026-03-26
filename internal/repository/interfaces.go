@@ -20,7 +20,7 @@ type TodoRepository interface {
 }
 
 type UserRepository interface {
-	CreateUser(ctx context.Context, name, surname, email, password string) error
+	CreateUser(ctx context.Context, name, surname, email, password, imageName, pathImage string) error
 	UserAuth(ctx context.Context, email string) (hash string, err error)
 	GetUserID(ctx context.Context, email string) (uuid.UUID, error)
 	GetUser(ctx context.Context, id uuid.UUID) (entities.User, error)

@@ -16,9 +16,9 @@ func NewUserRepository(repository *Repository) *UserPGRepository {
 	return &UserPGRepository{repository: repository}
 }
 
-func (u *UserPGRepository) CreateUser(ctx context.Context, name, surname, email, password string) error {
-	query := `INSERT INTO users(name, surname, email, password) VALUES ($1 , $2, $3, $4 );`
-	result, err := u.repository.database.Query(ctx, query, name, surname, email, password)
+func (u *UserPGRepository) CreateUser(ctx context.Context, name, surname, email, password, imageName, pathImage string) error {
+	query := `INSERT INTO users(name, surname, email, password, image_name, path_image) VALUES ($1 , $2, $3, $4, $5, $6 );`
+	result, err := u.repository.database.Query(ctx, query, name, surname, email, password, imageName, pathImage)
 	if err != nil {
 		logrus.Error("user repository: failed create user ", err)
 		return err

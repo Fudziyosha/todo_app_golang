@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"strings"
 	"time"
 	"web_todos/internal/entities"
 	"web_todos/internal/repository"
@@ -112,6 +113,7 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 	}
 
 	user, err := t.repo.User.GetUser(c, userID)
+	*user.PathImage = strings.TrimPrefix(*user.PathImage, ".")
 
 	return c.Render("index", fiber.Map{
 		"Todo":         todos,
