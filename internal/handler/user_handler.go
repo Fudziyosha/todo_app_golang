@@ -197,7 +197,15 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 
 		file, err := root.Open("image_avatar/" + imageName)
 		if err != nil {
-			return errors.New("unexpectedly succeeded in opening a file outside root")
+			logrus.Error("unexpectedly succeeded in opening a file outside root ", err)
+
+			err = root.Remove("image_avatar/" + imageName)
+			if err != nil {
+				logrus.Error("user handler: failed delete the avatar ", err)
+				return err
+			}
+
+			return err
 		}
 		_ = file
 
