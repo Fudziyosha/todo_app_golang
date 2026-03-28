@@ -53,7 +53,7 @@ func (s *Server) Server(repo *repository.Repository) error {
 		return err
 	}
 
-	handleAddr := fmt.Sprintf("%v:%v", s.config.Host, s.config.Port)
+	handleAddr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
 
 	log.Fatal(s.app.Listen(handleAddr), fiber.ListenConfig{
 		EnablePrefork: viper.GetBool("server.Prefork"),
@@ -99,7 +99,9 @@ func (s *Server) InitMiddleware() {
 		Database: 0,
 	})
 
-	s.app.Use(logger.New())
+	s.app.Use(logger.New(logger.Config{
+		LoggerFunc: logrusLoggerInstance,
+	}))
 	s.app.Use(compress.New())
 	s.app.Use(session.New(session.Config{
 		Storage:         redisStorage,
