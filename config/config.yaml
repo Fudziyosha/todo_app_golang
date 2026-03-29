@@ -14,5 +14,10 @@ server:
   AbsoluteCookieTimeout: 24h
 
 config:
-  host: "127.0.0.1"
-  port: 8082
+  server:
+    host: "127.0.0.1"
+    port: 8082
+  redis:
+    host: "127.0.0.1"
+    port: 6379
+    password: example
