@@ -23,7 +23,12 @@ func main() {
 		logrus.Error("main: failed init config ", err)
 	}
 
-	configPostgres := repository.NewPostgresConfig(viper.GetString("postgres.host"), viper.GetString("postgres.user"), viper.GetString("postgres.password"), viper.GetString("postgres.database"), viper.GetInt("postgres.port"))
+	configPostgres := repository.NewPostgresConfig(
+		viper.GetString("postgres.host"),
+		viper.GetString("postgres.user"),
+		viper.GetString("postgres.password"),
+		viper.GetString("postgres.database"),
+		viper.GetInt("postgres.port"))
 
 	err = logger.InitLogger()
 	if err != nil {

@@ -8,8 +8,6 @@ import (
 )
 
 func InitLogger() error {
-	logrus.New()
-
 	logLevel := viper.GetString("logger.level")
 	level, err := logrus.ParseLevel(logLevel)
 	if err != nil {

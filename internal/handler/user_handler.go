@@ -3,6 +3,9 @@ package handler
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 	"web_todos/internal/entities"
 	"web_todos/internal/repository"
 	"web_todos/internal/service"
@@ -13,8 +16,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const sessionUserIDKey = "user_id"
-const sessionAuthenticated = "authenticated"
+const (
+	sessionUserIDKey     = "user_id"
+	sessionAuthenticated = "authenticated"
+	FilePerm             = os.FileMode(0644)
+	defaultAvatar        = "cat_avatar_default.jpg"
+	defaultPathAvatar    = "./static/images/cat_avatar_default.jpg"
+)
 
 type UserHandler struct {
 	repo     *repository.Repository
@@ -66,7 +74,7 @@ func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
 		return err
 	}
 
-	err = u.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash)
+	err = u.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash, defaultAvatar, defaultPathAvatar)
 	if err != nil {
 		logrus.Error("user_handler: failed create user in handler ", err)
 		return err
@@ -92,7 +100,7 @@ func (u *UserHandler) UserLogin(c fiber.Ctx) error {
 		})
 	}
 
-	hash, err := u.repo.User.UserAuth(c, user.Email)
+	_, hash, err := u.repo.User.GetUserIDAndPassword(c, user.Email)
 	if err != nil {
 		logrus.Error("user_handler: failed login ", err)
 		return c.Render("login", fiber.Map{
@@ -108,7 +116,7 @@ func (u *UserHandler) UserLogin(c fiber.Ctx) error {
 		})
 	}
 
-	userID, err := u.repo.User.GetUserID(c, user.Email)
+	userID, _, err := u.repo.User.GetUserIDAndPassword(c, user.Email)
 	if err != nil {
 		logrus.Error("user_handler: failed get user id ", err)
 		return err
@@ -166,13 +174,42 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 
 	image, err := c.FormFile("avatar")
 	if err == nil && image != nil {
-		err = c.SaveFile(image, fmt.Sprintf("./uploads/image_avatar/%s", image.Filename))
+		root, err := os.OpenRoot("./uploads")
 		if err != nil {
-			logrus.Error("user_handler: failed save file image ", err)
+			logrus.Error("user handler: failed open root dir ", err)
+			return err
+		}
+		defer root.Close()
+
+		imageFile, err := image.Open()
+		bytes, err := io.ReadAll(imageFile)
+		ext := filepath.Ext(image.Filename)
+
+		imageName := fmt.Sprintf("avatar_%s%s", userID, ext)
+		if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+			logrus.Fatal("user handler: file is not image ")
+		}
+
+		if err := root.WriteFile("image_avatar/"+imageName, bytes, FilePerm); err != nil {
+			logrus.Error("failed to write file: ", err)
 			return err
 		}
 
-		err = u.repo.User.UpdateImage(c, image.Filename, "./uploads/image_avatar/"+image.Filename, userID)
+		file, err := root.Open("image_avatar/" + imageName)
+		if err != nil {
+			logrus.Error("unexpectedly succeeded in opening a file outside root ", err)
+
+			err = root.Remove("image_avatar/" + imageName)
+			if err != nil {
+				logrus.Error("user handler: failed delete the avatar ", err)
+				return err
+			}
+
+			return err
+		}
+		_ = file
+
+		err = u.repo.User.UpdateImage(c, imageName, "./uploads/image_avatar/"+imageName, userID)
 		if err != nil {
 			logrus.Error("user handler: failed update image user ", err)
 			return err

@@ -9,10 +9,15 @@ logger:
   level: error
 
 server:
-  statics: true
+  statics: false
   Prefork: true
   AbsoluteCookieTimeout: 24h
 
 config:
-  host: 127.0.0.1
-  port: 3000
+  server:
+    host: "127.0.0.1"
+    port: 8082
+  redis:
+    host: "127.0.0.1"
+    port: 6379
+    password: example

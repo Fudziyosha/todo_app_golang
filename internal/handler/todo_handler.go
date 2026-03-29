@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"strings"
 	"time"
 	"web_todos/internal/entities"
 	"web_todos/internal/repository"
@@ -34,7 +35,7 @@ func (t *TodoHandler) GetHome(c fiber.Ctx) error {
 	}
 
 	for i, val := range listsSlice {
-		sliceTasks, _ := t.repo.Todo.GetTodosByListFilter(c, val.ID, false)
+		sliceTasks, _ := t.repo.Todo.GetTodosByListFilter(c, val.ID, "active")
 		listsSlice[i].Todos = append(val.Todos, sliceTasks...)
 	}
 
@@ -96,11 +97,13 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 
 	switch query {
 	case "completed":
-		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, true)
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "completed")
 	case "active":
-		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, false)
-	default:
-		todos, err = t.repo.Todo.GetTodosByList(c, listID)
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "active")
+	case "all":
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "all")
+	case "":
+		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "")
 	}
 
 	listsSlice, err := t.repo.Todo.GetListsByID(c, userID)
@@ -110,6 +113,7 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 	}
 
 	user, err := t.repo.User.GetUser(c, userID)
+	*user.PathImage = strings.TrimPrefix(*user.PathImage, ".")
 
 	return c.Render("index", fiber.Map{
 		"Todo":         todos,
@@ -170,7 +174,7 @@ func (t *TodoHandler) TaskHandler(c fiber.Ctx) error {
 
 	switch action {
 	case "delete":
-		err = t.repo.Todo.DeleteTodoById(c, uuidTask)
+		err = t.repo.Todo.DeleteTodoByID(c, uuidTask)
 		if err != nil {
 			logrus.Error("todo_handler: failed delete task ", err)
 			return err
@@ -178,25 +182,25 @@ func (t *TodoHandler) TaskHandler(c fiber.Ctx) error {
 	case "update_todo":
 		newDescription := c.FormValue("todo_text")
 
-		err = t.repo.Todo.UpdateTodoDescriptionById(c, newDescription, updateTime, uuidTask)
+		err = t.repo.Todo.UpdateTodoDescriptionByID(c, newDescription, updateTime, uuidTask)
 		if err != nil {
 			logrus.Error("todo_handler: failed update todo ", err)
 			return err
 		}
 	case "update_completed":
-		err = t.repo.Todo.UpdateTodoStatusById(c, true, updateTime, uuidTask)
+		err = t.repo.Todo.UpdateTodoStatusByID(c, true, updateTime, uuidTask)
 		if err != nil {
 			logrus.Error("todo_handler: failed update todo status completed ", err)
 			return err
 		}
 	case "update_active":
-		err = t.repo.Todo.UpdateTodoStatusById(c, false, updateTime, uuidTask)
+		err = t.repo.Todo.UpdateTodoStatusByID(c, false, updateTime, uuidTask)
 		if err != nil {
 			logrus.Error("todo_handler: failed update todo status active ", err)
 			return err
 		}
 	case "delete_list":
-		err = t.repo.Todo.DeleteListById(c, listID)
+		err = t.repo.Todo.DeleteListByID(c, listID)
 		if err != nil {
 			logrus.Error("todo_handler: failed delete list by id ", err)
 		}
