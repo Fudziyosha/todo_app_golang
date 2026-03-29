@@ -100,7 +100,7 @@ func (u *UserHandler) UserLogin(c fiber.Ctx) error {
 		})
 	}
 
-	hash, err := u.repo.User.UserAuth(c, user.Email)
+	_, hash, err := u.repo.User.GetUserIDAndPassword(c, user.Email)
 	if err != nil {
 		logrus.Error("user_handler: failed login ", err)
 		return c.Render("login", fiber.Map{
@@ -116,7 +116,7 @@ func (u *UserHandler) UserLogin(c fiber.Ctx) error {
 		})
 	}
 
-	userID, err := u.repo.User.GetUserID(c, user.Email)
+	userID, _, err := u.repo.User.GetUserIDAndPassword(c, user.Email)
 	if err != nil {
 		logrus.Error("user_handler: failed get user id ", err)
 		return err
