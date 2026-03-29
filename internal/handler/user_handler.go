@@ -74,13 +74,17 @@ func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
 		return err
 	}
 
-	err = u.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash, defaultAvatar, defaultPathAvatar)
+	userID, err := u.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash, defaultAvatar, defaultPathAvatar)
 	if err != nil {
 		logrus.Error("user_handler: failed create user in handler ", err)
 		return err
 	}
 
-	return c.Redirect().To("/user/login")
+	stringUserID := userID.String()
+
+	err = setCookie(c, stringUserID)
+
+	return c.Redirect().To("/")
 }
 
 func (u *UserHandler) UserLogin(c fiber.Ctx) error {
@@ -122,17 +126,9 @@ func (u *UserHandler) UserLogin(c fiber.Ctx) error {
 		return err
 	}
 
-	stringUUID := userID.String()
+	stringUserID := userID.String()
 
-	sess := session.FromContext(c)
-
-	err = sess.Regenerate()
-	if err != nil {
-		logrus.Error("user_handler: failed regenerate session id ", err)
-		return err
-	}
-	sess.Set(sessionUserIDKey, stringUUID)
-	sess.Set(sessionAuthenticated, true)
+	err = setCookie(c, stringUserID)
 
 	return c.Redirect().To("/")
 }
@@ -268,4 +264,18 @@ func (u *UserHandler) UpdateUserPass(c fiber.Ctx) error {
 	err = u.repo.User.UpdateUserPass(c, newHashPass, userID)
 
 	return c.Redirect().To("/")
+}
+
+func setCookie(c fiber.Ctx, userID string) error {
+	sess := session.FromContext(c)
+
+	err := sess.Regenerate()
+	if err != nil {
+		logrus.Error("user_handler: failed regenerate session id ", err)
+		return err
+	}
+	sess.Set(sessionUserIDKey, userID)
+	sess.Set(sessionAuthenticated, true)
+
+	return nil
 }
