@@ -10,8 +10,11 @@ import (
 )
 
 type Config struct {
-	Host string
-	Port int
+	ServerHost    string
+	ServerPort    int
+	RedisHost     string
+	RedisPort     int
+	RedisPassword string
 }
 
 func NewConfig() *Config {
@@ -21,7 +24,7 @@ func NewConfig() *Config {
 func (c *Config) InitConfig() error {
 	err := godotenv.Load()
 	if err != nil {
-		logrus.Error("config: failed load env %w ", err)
+		logrus.Warn("config: failed load env %w ", err)
 	}
 
 	viper.SetEnvPrefix("WN")
@@ -35,8 +38,11 @@ func (c *Config) InitConfig() error {
 		log.Fatal("config: failed read in config")
 	}
 
-	c.Host = viper.GetString("config.host")
-	c.Port = viper.GetInt("config.port")
+	c.ServerHost = viper.GetString("config.server.host")
+	c.ServerPort = viper.GetInt("config.server.port")
+	c.RedisHost = viper.GetString("config.redis.host")
+	c.RedisPassword = viper.GetString("config.redis.password")
+	c.RedisPort = viper.GetInt("config.redis.port")
 
 	return nil
 }

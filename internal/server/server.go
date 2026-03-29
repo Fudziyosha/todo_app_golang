@@ -53,7 +53,7 @@ func (s *Server) Server(repo *repository.Repository) error {
 		return err
 	}
 
-	handleAddr := fmt.Sprintf("%s:%d", s.config.Host, s.config.Port)
+	handleAddr := fmt.Sprintf("%s:%d", s.config.ServerHost, s.config.ServerPort)
 
 	log.Fatal(s.app.Listen(handleAddr), fiber.ListenConfig{
 		EnablePrefork: viper.GetBool("server.Prefork"),
@@ -92,10 +92,10 @@ func (s *Server) RegisterRoutes() error {
 
 func (s *Server) InitMiddleware() {
 	redisStorage := redis.New(redis.Config{
-		Host:     "127.0.0.1",
-		Port:     6379,
+		Host:     s.config.RedisHost,
+		Port:     s.config.RedisPort,
 		Username: "",
-		Password: "",
+		Password: s.config.RedisPassword,
 		Database: 0,
 	})
 

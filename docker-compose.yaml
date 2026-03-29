@@ -19,6 +19,9 @@ services:
     container_name: redis
     ports:
       - '127.0.0.1:6379:6379'
+    env_file:
+      .env
+    command: redis-server --requirepass ${WN_REDIS_PASSWORD}
     volumes:
       - ./volumes/redis-data:/var/lib/redis
     restart: unless-stopped
