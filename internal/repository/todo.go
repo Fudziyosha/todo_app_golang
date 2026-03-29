@@ -19,30 +19,23 @@ func NewTodoRepository(repository *Repository) *TodoPGRepository {
 }
 
 func (t *TodoPGRepository) CreateList(ctx context.Context, name string, userID uuid.UUID) error {
-	createdAt := time.Now().UTC()
-
-	query := `INSERT INTO List(name,created_by, created_at) VALUES ($1 , $2, $3 );`
-	resultInsert, err := t.repository.database.Query(ctx, query, name, userID, createdAt)
+	query := `INSERT INTO List(name,created_by, created_at) VALUES ($1 , $2, NOW() );`
+	_, err := t.repository.database.Exec(ctx, query, name, userID)
 	if err != nil {
 		logrus.Error("repository: failed scan insert List ", err)
 		return err
 	}
 
-	resultInsert.Close()
-
 	return nil
 }
 
 func (t *TodoPGRepository) InsertTodoByList(ctx context.Context, description string, listID uuid.UUID) error {
-	createdAt := time.Now().UTC()
-
-	query := `INSERT INTO Todo(description, status, created_at, created_in_list) VALUES ($1 , $2, $3, $4 );`
-	resultInsert, err := t.repository.database.Query(ctx, query, description, false, createdAt, listID)
+	query := `INSERT INTO Todo(description, status, created_in_list, created_at) VALUES ($1 , $2, $3, NOW() );`
+	_, err := t.repository.database.Exec(ctx, query, description, false, listID)
 	if err != nil {
 		logrus.Error("todo repository: failed scan insert List ", err)
 		return err
 	}
-	resultInsert.Close()
 
 	return nil
 }
@@ -105,54 +98,50 @@ func (t *TodoPGRepository) GetTodosByListFilter(ctx context.Context, id uuid.UUI
 
 }
 
-func (t *TodoPGRepository) DeleteTodoById(ctx context.Context, todoId uuid.UUID) error {
+func (t *TodoPGRepository) DeleteTodoByID(ctx context.Context, todoId uuid.UUID) error {
 	query := `DELETE FROM todo WHERE id = $1;`
 
-	row, err := t.repository.database.Query(ctx, query, todoId)
+	_, err := t.repository.database.Exec(ctx, query, todoId)
 	if err != nil {
 		logrus.Error("todo repository: failed delete task ", err)
 		return err
 	}
-	row.Close()
 
 	return nil
 }
 
-func (t *TodoPGRepository) UpdateTodoDescriptionById(ctx context.Context, newDescription string, timeUpdate time.Time, currentTodoId uuid.UUID) error {
+func (t *TodoPGRepository) UpdateTodoDescriptionByID(ctx context.Context, newDescription string, timeUpdate time.Time, currentTodoId uuid.UUID) error {
 	query := `UPDATE todo SET description = $1, updated_at = $2 WHERE id = $3;`
 
-	row, err := t.repository.database.Query(ctx, query, newDescription, timeUpdate, currentTodoId)
+	_, err := t.repository.database.Exec(ctx, query, newDescription, timeUpdate, currentTodoId)
 	if err != nil {
 		logrus.Error("todo repository: failed delete task ", err)
 		return err
 	}
-	row.Close()
 
 	return nil
 }
 
-func (t *TodoPGRepository) UpdateTodoStatusById(ctx context.Context, status bool, timeUpdate time.Time, currentTodoId uuid.UUID) error {
+func (t *TodoPGRepository) UpdateTodoStatusByID(ctx context.Context, status bool, timeUpdate time.Time, currentTodoId uuid.UUID) error {
 	query := `UPDATE todo SET status = $1, updated_at = $2 WHERE id = $3;`
 
-	row, err := t.repository.database.Query(ctx, query, status, timeUpdate, currentTodoId)
+	_, err := t.repository.database.Exec(ctx, query, status, timeUpdate, currentTodoId)
 	if err != nil {
 		logrus.Error("todo repository: failed delete task ", err)
 		return err
 	}
-	row.Close()
 
 	return nil
 }
 
-func (t *TodoPGRepository) DeleteListById(ctx context.Context, listID uuid.UUID) error {
+func (t *TodoPGRepository) DeleteListByID(ctx context.Context, listID uuid.UUID) error {
 	query := `DELETE FROM list WHERE id = $1;`
 
-	row, err := t.repository.database.Query(ctx, query, listID)
+	_, err := t.repository.database.Exec(ctx, query, listID)
 	if err != nil {
 		logrus.Error("todo repository: failed delete list ", err)
 		return err
 	}
-	row.Close()
 
 	return nil
 }
