@@ -28,7 +28,7 @@ func (u *UserPGRepository) CreateUser(ctx context.Context, name, surname, email,
 }
 
 func (u *UserPGRepository) GetUserIDAndPassword(ctx context.Context, email string) (userID uuid.UUID, hash string, err error) {
-	query := `SELECT id FROM users WHERE email = ($1);`
+	query := `SELECT id, password FROM users WHERE email = ($1);`
 	row := u.repository.database.QueryRow(ctx, query, email)
 	err = row.Scan(&userID, &hash)
 	if err != nil {
