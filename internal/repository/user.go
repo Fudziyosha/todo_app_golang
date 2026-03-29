@@ -18,12 +18,11 @@ func NewUserRepository(repository *Repository) *UserPGRepository {
 
 func (u *UserPGRepository) CreateUser(ctx context.Context, name, surname, email, password, imageName, pathImage string) error {
 	query := `INSERT INTO users(name, surname, email, password, image_name, path_image) VALUES ($1 , $2, $3, $4, $5, $6 );`
-	result, err := u.repository.database.Query(ctx, query, name, surname, email, password, imageName, pathImage)
+	_, err := u.repository.database.Exec(ctx, query, name, surname, email, password, imageName, pathImage)
 	if err != nil {
 		logrus.Error("user repository: failed create user ", err)
 		return err
 	}
-	result.Close()
 
 	return nil
 }
@@ -55,22 +54,16 @@ func (u *UserPGRepository) GetUserID(ctx context.Context, email string) (uuid.UU
 }
 
 func (u *UserPGRepository) GetUser(ctx context.Context, id uuid.UUID) (entities.User, error) {
+	var user entities.User
+
 	query := `SELECT id, name, surname, email, password ,image_name,path_image FROM users WHERE id = $1;`
-	rows, err := u.repository.database.Query(ctx, query, id)
+	row := u.repository.database.QueryRow(ctx, query, id)
+	err := row.Scan(&user.ID, &user.Name, &user.Surname, &user.Email, &user.Password, &user.ImageName, &user.PathImage)
 	if err != nil {
 		logrus.Error("user repository: failed select all Todo ", err)
 		return entities.User{}, err
 	}
-	defer rows.Close()
 
-	var user entities.User
-	for rows.Next() {
-		err = rows.Scan(&user.ID, &user.Name, &user.Surname, &user.Email, &user.Password, &user.ImageName, &user.PathImage)
-		if err != nil {
-			logrus.Error("user repository: failed rows scan all Todo ", err)
-			return entities.User{}, err
-		}
-	}
 	return user, nil
 }
 
