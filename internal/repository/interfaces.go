@@ -22,7 +22,7 @@ type TodoRepository interface {
 type UserRepository interface {
 	CreateUser(ctx context.Context, name, surname, email, password, imageName, pathImage string) error
 	UserAuth(ctx context.Context, email string) (hash string, err error)
-	GetUserID(ctx context.Context, email string) (uuid.UUID, error)
+	GetUserIDAndPassword(ctx context.Context, email string) (userID uuid.UUID, hash string, err error)
 	GetUser(ctx context.Context, id uuid.UUID) (entities.User, error)
 	UpdateImage(ctx context.Context, name, path string, id uuid.UUID) error
 	UpdateUserName(ctx context.Context, name string, id uuid.UUID) error

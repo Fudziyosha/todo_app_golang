@@ -39,18 +39,16 @@ func (u *UserPGRepository) UserAuth(ctx context.Context, email string) (hash str
 	return hash, nil
 }
 
-func (u *UserPGRepository) GetUserID(ctx context.Context, email string) (uuid.UUID, error) {
-	var userID uuid.UUID
-
+func (u *UserPGRepository) GetUserIDAndPassword(ctx context.Context, email string) (userID uuid.UUID, hash string, err error) {
 	query := `SELECT id FROM users WHERE email = ($1);`
 	row := u.repository.database.QueryRow(ctx, query, email)
-	err := row.Scan(&userID)
+	err = row.Scan(&userID, &hash)
 	if err != nil {
 		logrus.Error("user repository: not found user in database uuid ", err)
-		return uuid.UUID{}, err
+		return userID, hash, err
 	}
 
-	return userID, nil
+	return userID, hash, nil
 }
 
 func (u *UserPGRepository) GetUser(ctx context.Context, id uuid.UUID) (entities.User, error) {
