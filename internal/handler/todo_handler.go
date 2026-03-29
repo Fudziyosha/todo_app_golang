@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"web_todos/internal/entities"
 	"web_todos/internal/repository"
 
 	"github.com/gofiber/fiber/v3"
@@ -91,20 +90,9 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 		return err
 	}
 
-	//pageMode, taskStatus := t.checkFilters(c)
 	query := c.Query("filters")
-	var todos []entities.Todo
 
-	switch query {
-	case "completed":
-		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "completed")
-	case "active":
-		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "active")
-	case "all":
-		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "all")
-	case "":
-		todos, err = t.repo.Todo.GetTodosByListFilter(c, listID, "")
-	}
+	todos, err := t.repo.Todo.GetTodosByListFilter(c, listID, query)
 
 	listsSlice, err := t.repo.Todo.GetListsByID(c, userID)
 	if err != nil {
@@ -236,14 +224,4 @@ func (t *TodoHandler) CreateList(c fiber.Ctx) error {
 	return c.Render("index", fiber.Map{
 		"List": lists,
 	})
-}
-
-func (t *TodoHandler) checkFilters(c fiber.Ctx) (string, bool) {
-	filters := c.Params("filters")
-
-	var defaultBool = false
-	if filters == "completed" {
-		defaultBool = true
-	}
-	return filters, defaultBool
 }
