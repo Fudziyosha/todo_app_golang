@@ -34,7 +34,7 @@ func (h *Handler) CheckCookieAuthenticated(c fiber.Ctx) error {
 	return c.Next()
 }
 
-func GetUserIdInSession(c fiber.Ctx) (uuid.UUID, error) {
+func GetUserIDInSession(c fiber.Ctx) (uuid.UUID, error) {
 	sess := session.FromContext(c)
 	userID := sess.Get(sessionUserIDKey)
 

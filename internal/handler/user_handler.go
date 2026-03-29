@@ -153,7 +153,7 @@ func (u *UserHandler) ChangePassword(c fiber.Ctx) error {
 }
 
 func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
-	userID, err := GetUserIdInSession(c)
+	userID, err := GetUserIDInSession(c)
 	if err != nil {
 		logrus.Error("user handler: failed parse uuid ", err)
 		return err
@@ -216,7 +216,7 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 }
 
 func (u *UserHandler) UpdateUserPass(c fiber.Ctx) error {
-	userID, err := GetUserIdInSession(c)
+	userID, err := GetUserIDInSession(c)
 	if err != nil {
 		logrus.Error("user handler: failed parse uuid ", err)
 		return err
