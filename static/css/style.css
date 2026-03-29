@@ -293,6 +293,13 @@ a:hover {
     color: #120a1c;
 }
 
+.list-row.list-row--selected {
+    background: rgba(120, 24, 44, 0.34);
+    border-color: rgba(255, 123, 154, 0.68);
+    box-shadow: 0 0 0 1px rgba(255, 123, 154, 0.3);
+    color: #fff2f5;
+}
+
 .list-row__link {
     width: 100%;
     min-width: 0;
@@ -353,6 +360,7 @@ a:hover {
 }
 
 .list-row__delete-form {
+    display: none;
     position: absolute;
     top: 50%;
     right: 8px;
@@ -363,20 +371,16 @@ a:hover {
     pointer-events: none;
 }
 
-.lists-panel--delete-mode .list-row__delete-form {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
+.lists-panel--delete-mode .list-row__link {
+    padding-right: 14px;
 }
 
-.lists-panel--delete-mode .list-row__delete {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
+.lists-panel--delete-mode .list-row {
+    cursor: pointer;
 }
 
 .lists-panel--delete-mode .list-row__link {
-    padding-right: 52px;
+    pointer-events: none;
 }
 
 .lists-actions {

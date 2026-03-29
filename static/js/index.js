@@ -38,11 +38,72 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    const listRows = Array.from(panel.querySelectorAll(".list-row"));
+    const deleteForms = Array.from(panel.querySelectorAll(".list-row__delete-form"));
+
+    const clearSelectedRows = () => {
+        listRows.forEach((row) => row.classList.remove("list-row--selected"));
+    };
+
+    const getSelectedForms = () =>
+        deleteForms.filter((form) => form.closest(".list-row")?.classList.contains("list-row--selected"));
+
     toggleButton.addEventListener("click", function () {
+        if (panel.classList.contains("lists-panel--delete-mode")) {
+            const selectedForms = getSelectedForms();
+
+            if (selectedForms.length === 0) {
+                return;
+            }
+
+            const submitForm = document.createElement("form");
+            submitForm.method = "POST";
+            submitForm.enctype = "multipart/form-data";
+            submitForm.action = window.location.pathname + window.location.search;
+            submitForm.style.display = "none";
+
+            const actionInput = document.createElement("input");
+            actionInput.type = "hidden";
+            actionInput.name = "action";
+            actionInput.value = "delete_list";
+            submitForm.appendChild(actionInput);
+
+            selectedForms.forEach((form) => {
+                const listIdInput = form.querySelector('input[name="list_id"]');
+
+                if (!listIdInput || !listIdInput.value) {
+                    return;
+                }
+
+                const selectedInput = document.createElement("input");
+                selectedInput.type = "hidden";
+                selectedInput.name = "list_id";
+                selectedInput.value = listIdInput.value;
+                submitForm.appendChild(selectedInput);
+            });
+
+            document.body.appendChild(submitForm);
+            submitForm.submit();
+
+            return;
+        }
+
         panel.classList.add("lists-panel--delete-mode");
     });
 
     cancelButton.addEventListener("click", function () {
         panel.classList.remove("lists-panel--delete-mode");
+        clearSelectedRows();
+    });
+
+    listRows.forEach((row) => {
+        row.addEventListener("click", function (event) {
+            if (!panel.classList.contains("lists-panel--delete-mode")) {
+                return;
+            }
+
+            event.preventDefault();
+            row.classList.toggle("list-row--selected");
+        });
     });
 });

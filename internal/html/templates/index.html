@@ -73,9 +73,10 @@
                                         <span class="list-row__name">{{ .Name }}</span>
                                     </a>
 
-                                    <form method="post" class="list-row__delete-form">
+                                    <form method="post" action="/list/{{ .ID }}" class="list-row__delete-form">
                                         <input type="hidden" name="list_id" value="{{ .ID }}">
-                                        <button type="submit" name="action" value="delete_list" class="list-row__delete" aria-label="Delete list">
+                                        <input type="hidden" name="action" value="delete_list">
+                                        <button type="submit" class="list-row__delete" aria-label="Delete list">
                                             <i class="bi-trash3"></i>
                                         </button>
                                     </form>
