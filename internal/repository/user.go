@@ -27,18 +27,6 @@ func (u *UserPGRepository) CreateUser(ctx context.Context, name, surname, email,
 	return nil
 }
 
-func (u *UserPGRepository) UserAuth(ctx context.Context, email string) (hash string, err error) {
-	query := `SELECT password FROM users WHERE email = ($1);`
-	row := u.repository.database.QueryRow(ctx, query, email)
-	err = row.Scan(&hash)
-	if err != nil {
-		logrus.Error("user repository: not found user in database ", err)
-		return "", err
-	}
-
-	return hash, nil
-}
-
 func (u *UserPGRepository) GetUserIDAndPassword(ctx context.Context, email string) (userID uuid.UUID, hash string, err error) {
 	query := `SELECT id FROM users WHERE email = ($1);`
 	row := u.repository.database.QueryRow(ctx, query, email)
