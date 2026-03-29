@@ -33,7 +33,7 @@ func (t *TodoPGRepository) InsertTodoByList(ctx context.Context, description str
 	query := `INSERT INTO Todo(description, status, created_in_list, created_at) VALUES ($1 , $2, $3, NOW() );`
 	_, err := t.repository.database.Exec(ctx, query, description, false, listID)
 	if err != nil {
-		logrus.Error("todo repository: failed scan insert List ", err)
+		logrus.Error("todo repository: failed exec insert List ", err)
 		return err
 	}
 
