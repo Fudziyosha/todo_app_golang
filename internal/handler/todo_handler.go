@@ -73,6 +73,16 @@ func (t *TodoHandler) CreateListInHomePage(c fiber.Ctx) error {
 		}
 	}
 
+	if c.FormValue("action") != "" {
+		listsID, err := getSliceLists(c)
+
+		err = t.repo.Todo.DeleteListByID(c, listsID)
+		if err != nil {
+			logrus.Error("todo_handler: failed delete list by id ", err)
+			return c.SendStatus(500)
+		}
+	}
+
 	return c.Redirect().To("/")
 }
 
@@ -192,7 +202,9 @@ func (t *TodoHandler) TaskHandler(c fiber.Ctx) error {
 			return c.SendStatus(500)
 		}
 	case "delete_list":
-		err = t.repo.Todo.DeleteListByID(c, listID)
+		listsID, err := getSliceLists(c)
+
+		err = t.repo.Todo.DeleteListByID(c, listsID)
 		if err != nil {
 			logrus.Error("todo_handler: failed delete list by id ", err)
 			return c.SendStatus(500)
@@ -229,4 +241,15 @@ func (t *TodoHandler) CreateList(c fiber.Ctx) error {
 	return c.Render("index", fiber.Map{
 		"List": lists,
 	})
+}
+
+func getSliceLists(c fiber.Ctx) (listsID []uuid.UUID, err error) {
+
+	lists, err := c.MultipartForm()
+	for _, stringID := range lists.Value["list_id"] {
+		listUUID, _ := uuid.Parse(stringID)
+		listsID = append(listsID, listUUID)
+	}
+
+	return listsID, nil
 }

@@ -134,12 +134,20 @@ func (t *TodoPGRepository) UpdateTodoStatusByID(ctx context.Context, status bool
 	return nil
 }
 
-func (t *TodoPGRepository) DeleteListByID(ctx context.Context, listID uuid.UUID) error {
+func (t *TodoPGRepository) DeleteListByID(ctx context.Context, listID []uuid.UUID) error {
 	query := `DELETE FROM list WHERE id = $1;`
 
-	_, err := t.repository.database.Exec(ctx, query, listID)
+	batch := &pgx.Batch{}
+	for _, id := range listID {
+		batch.Queue(query, id)
+	}
+
+	results := t.repository.database.SendBatch(ctx, batch)
+	defer results.Close()
+
+	err := results.Close()
 	if err != nil {
-		logrus.Error("todo repository: failed delete list ", err)
+		logrus.Error("database: failed close many to many ", err)
 		return err
 	}
 

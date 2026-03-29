@@ -16,7 +16,7 @@ type TodoRepository interface {
 	DeleteTodoByID(ctx context.Context, todoId uuid.UUID) error
 	UpdateTodoDescriptionByID(ctx context.Context, newDescription string, timeUpdate time.Time, currentTodoId uuid.UUID) error
 	UpdateTodoStatusByID(ctx context.Context, status bool, timeUpdate time.Time, currentTodoId uuid.UUID) error
-	DeleteListByID(ctx context.Context, listID uuid.UUID) error
+	DeleteListByID(ctx context.Context, listID []uuid.UUID) error
 }
 
 type UserRepository interface {
