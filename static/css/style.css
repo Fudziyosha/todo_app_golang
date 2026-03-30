@@ -2023,6 +2023,11 @@ input:-webkit-autofill:active {
         padding: 18px 16px;
     }
 
+    .home-lists-kicker,
+    .mobile-overview-copy {
+        display: none;
+    }
+
     .todo-status {
         width: 100%;
         justify-content: flex-start;
@@ -2368,10 +2373,6 @@ input:-webkit-autofill:active {
 
     .filters {
         gap: 8px;
-    }
-
-    .mobile-overview-copy {
-        grid-template-columns: 1fr;
     }
 
     .home-lists-head {
