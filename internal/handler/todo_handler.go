@@ -44,11 +44,11 @@ func (t *TodoHandler) GetHome(c fiber.Ctx) error {
 		return c.SendStatus(500)
 	}
 
-	return c.Render("index", fiber.Map{
+	return c.Render("home", fiber.Map{
 		"List":      listsSlice,
 		"User":      user,
 		"HomeLists": listsSlice,
-	})
+	}, "layouts/main")
 }
 
 func (t *TodoHandler) CreateListInHomePage(c fiber.Ctx) error {
@@ -117,13 +117,13 @@ func (t *TodoHandler) GetTasksByUser(c fiber.Ctx) error {
 	user, err := t.repo.User.GetUser(c, userID)
 	*user.PathImage = strings.TrimPrefix(*user.PathImage, ".")
 
-	return c.Render("index", fiber.Map{
+	return c.Render("tasks", fiber.Map{
 		"Todo":         todos,
 		"List":         listsSlice,
 		"ActiveListID": listID,
 		"filters":      query,
 		"User":         user,
-	})
+	}, "layouts/main")
 }
 
 func (t *TodoHandler) TaskHandler(c fiber.Ctx) error {

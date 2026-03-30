@@ -23,6 +23,7 @@
 <div class="place-img">
     <img src="/static/images/selfie2.png" class="img-place" alt="img-place">
 </div>
+<img src="/static/images/sun.png" class="sun__img" alt="Sun">
 
 <div class="container sidebar-left">
     <div class="row">
@@ -100,39 +101,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="newListModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content list-modal">
-
-            <div class="modal-header border-0">
-                <h5 class="modal-title">New List</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <div class="modal-body">
-                <form method="post" class="list-modal-form">
-                    <input
-                            type="text"
-                            class="form-control list-input"
-                            name="list_title"
-                            placeholder="List title"
-                            maxlength="100"
-                            required
-                            autofocus
-                    />
-
-                    <div class="d-flex justify-content-end mt-3">
-                        <button type="submit" class="btn btn-register">
-                            Save
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-        </div>
-    </div>
-</div>
-
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -180,89 +148,10 @@
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
 </div>
-
-<main class="tasks">
-    <img src="/static/images/sun.png" class="sun__img" alt="Sun">
-
-    {{ if .ActiveListID }}
-        {{ template "tasks" . }}
-    {{ else }}
-        <section class="home-lists-shell">
-            <div class="home-lists-frame">
-                <header class="home-lists-head">
-                    <div>
-                        <p class="home-lists-kicker">Workspace overview</p>
-                        <h1 class="main__tasks home-main-title">My Lists</h1>
-                        <p class="home-lists-subtitle">All lists live here. Add nested tasks from backend later and the layout will render them inside each card.</p>
-                    </div>
-                    <button type="button" class="home-new-list-btn" data-bs-toggle="modal" data-bs-target="#newListModal">
-                        + New List
-                    </button>
-                </header>
-
-                <section class="home-lists-scroll">
-                    {{ with .HomeLists }}
-                        <div class="home-lists-grid">
-                            {{ range . }}
-                                <article class="home-list-card">
-                                    <div class="home-list-card__head">
-                                        <div>
-                                            <p class="home-list-card__eyebrow">List</p>
-                                            <h2 class="home-list-card__title">{{ .Name }}</h2>
-                                        </div>
-                                        <a class="home-list-card__link" href="/list/{{ .ID }}">Open</a>
-                                    </div>
-
-                                    <div class="home-list-card__tasks">
-                                        {{ with .Todos }}
-                                            {{ range . }}
-                                                <div class="home-task-chip {{ if .Status }}is-completed{{ end }}">
-                                                    <span class="home-task-chip__state">{{ if .Status }}Completed{{ else }}Active{{ end }}</span>
-                                                    <span class="home-task-chip__text">{{ .Description }}</span>
-                                                </div>
-                                            {{ end }}
-                                        {{ else }}
-                                            <p class="home-list-card__empty">No tasks in this list yet.</p>
-                                        {{ end }}
-                                    </div>
-                                </article>
-                            {{ end }}
-                        </div>
-                    {{ else }}
-                        {{ if .List }}
-                            <div class="home-lists-grid">
-                                {{ range .List }}
-                                    <article class="home-list-card home-list-card--preview">
-                                        <div class="home-list-card__head">
-                                            <div>
-                                                <p class="home-list-card__eyebrow">List</p>
-                                                <h2 class="home-list-card__title">{{ .Name }}</h2>
-                                            </div>
-                                            <a class="home-list-card__link" href="/list/{{ .ID }}">Open</a>
-                                        </div>
-
-                                        <div class="home-list-card__tasks">
-                                            <p class="home-list-card__empty">Tasks block is ready. Pass tasks for each list from backend and they will appear here with scroll support.</p>
-                                        </div>
-                                    </article>
-                                {{ end }}
-                            </div>
-                        {{ else }}
-                            <div class="home-empty-state">
-                                <h2 class="home-empty-state__title">No lists yet</h2>
-                                <p class="home-empty-state__text">Create your first list and it will appear here as a separate card.</p>
-                            </div>
-                        {{ end }}
-                    {{ end }}
-                </section>
-            </div>
-        </section>
-    {{ end }}
-</main>
+{{ embed }}
 </body>
 <script src="/static/js/index.js"></script>
 </html>
