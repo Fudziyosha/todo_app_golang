@@ -11,7 +11,8 @@ logger:
 server:
   statics: false
   Prefork: true
-  AbsoluteCookieTimeout: 24h
+  idleTimeout: 2h
+  absoluteCookieTimeout: 24h
 
 config:
   server:

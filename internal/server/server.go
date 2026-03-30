@@ -105,8 +105,9 @@ func (s *Server) InitMiddleware() {
 	s.app.Use(compress.New())
 	s.app.Use(session.New(session.Config{
 		Storage:         redisStorage,
+		IdleTimeout:     viper.GetDuration("server.idleTimeout"),
+		AbsoluteTimeout: viper.GetDuration("server.absoluteCookieTimeout"),
 		CookieSecure:    true,
 		CookieHTTPOnly:  true,
-		AbsoluteTimeout: viper.GetDuration("server.AbsoluteCookieTimeout"),
 	}))
 }
