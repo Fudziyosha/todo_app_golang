@@ -145,11 +145,5 @@ func (t *TodoPGRepository) DeleteListByID(ctx context.Context, listID []uuid.UUI
 	results := t.repository.database.SendBatch(ctx, batch)
 	defer results.Close()
 
-	err := results.Close()
-	if err != nil {
-		logrus.Error("database: failed close many to many ", err)
-		return err
-	}
-
 	return nil
 }
