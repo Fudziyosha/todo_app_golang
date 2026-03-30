@@ -37,7 +37,11 @@ func NewUserHandler(repo *repository.Repository) *UserHandler {
 }
 
 func (u *UserHandler) GetRegistrationPage(c fiber.Ctx) error {
-	return c.Render("register", nil)
+	err := c.Render("register", nil)
+	if err != nil {
+		return c.SendStatus(500)
+	}
+	return nil
 }
 
 func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
@@ -48,7 +52,7 @@ func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
 	err := c.Bind().Form(user)
 	if err != nil {
 		logrus.Error("user_handler: failed parse form user ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	err = u.validate.Validate(user)
@@ -71,7 +75,7 @@ func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
 	hash, err := service.HashPassword(user.Password)
 	if err != nil {
 		logrus.Error("user_handler: failed hash password ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	userID, err := u.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash, defaultAvatar, defaultPathAvatar)
@@ -93,7 +97,7 @@ func (u *UserHandler) UserLogin(c fiber.Ctx) error {
 	err := c.Bind().Form(user)
 	if err != nil {
 		logrus.Error("user_handler: failed get user form ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	err = u.validate.Validate(user)
@@ -123,7 +127,7 @@ func (u *UserHandler) UserLogin(c fiber.Ctx) error {
 	userID, _, err := u.repo.User.GetUserIDAndPassword(c, user.Email)
 	if err != nil {
 		logrus.Error("user_handler: failed get user id ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	stringUserID := userID.String()
@@ -139,24 +143,32 @@ func (u *UserHandler) Logout(c fiber.Ctx) error {
 	err := sess.Destroy()
 	if err != nil {
 		logrus.Error("user_handler: failed destroy the session ", err)
-		return err
+		return c.SendStatus(500)
 	}
 	return c.Redirect().To("/user/login")
 }
 
 func (u *UserHandler) GetUserLogin(c fiber.Ctx) error {
-	return c.Render("login", nil)
+	err := c.Render("login", nil)
+	if err != nil {
+		return c.SendStatus(500)
+	}
+	return nil
 }
 
 func (u *UserHandler) ChangePassword(c fiber.Ctx) error {
-	return c.Render("change_password", nil)
+	err := c.Render("change_password", nil)
+	if err != nil {
+		return c.SendStatus(500)
+	}
+	return nil
 }
 
 func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 	userID, err := GetUserIDInSession(c)
 	if err != nil {
 		logrus.Error("user handler: failed parse uuid ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	name := c.FormValue("user_name")
@@ -164,7 +176,7 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 		err = u.repo.User.UpdateUserName(c, name, userID)
 		if err != nil {
 			logrus.Error("user handler: failed update user name ", err)
-			return err
+			return c.SendStatus(400)
 		}
 	}
 
@@ -173,7 +185,7 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 		root, err := os.OpenRoot("./uploads")
 		if err != nil {
 			logrus.Error("user handler: failed open root dir ", err)
-			return err
+			return c.SendStatus(500)
 		}
 		defer root.Close()
 
@@ -183,12 +195,13 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 
 		imageName := fmt.Sprintf("avatar_%s%s", userID, ext)
 		if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
-			logrus.Fatal("user handler: file is not image ")
+			logrus.Error("user handler: file is not image ")
+			return c.SendStatus(400)
 		}
 
 		if err := root.WriteFile("image_avatar/"+imageName, bytes, FilePerm); err != nil {
 			logrus.Error("failed to write file: ", err)
-			return err
+			return c.SendStatus(500)
 		}
 
 		file, err := root.Open("image_avatar/" + imageName)
@@ -198,17 +211,17 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 			err = root.Remove("image_avatar/" + imageName)
 			if err != nil {
 				logrus.Error("user handler: failed delete the avatar ", err)
-				return err
+				return c.SendStatus(500)
 			}
 
-			return err
+			return c.SendStatus(400)
 		}
 		_ = file
 
 		err = u.repo.User.UpdateImage(c, imageName, "./uploads/image_avatar/"+imageName, userID)
 		if err != nil {
 			logrus.Error("user handler: failed update image user ", err)
-			return err
+			return c.SendStatus(500)
 		}
 	}
 
@@ -219,7 +232,7 @@ func (u *UserHandler) UpdateUserPass(c fiber.Ctx) error {
 	userID, err := GetUserIDInSession(c)
 	if err != nil {
 		logrus.Error("user handler: failed parse uuid ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	currentPass := c.FormValue("current_password")
@@ -227,7 +240,7 @@ func (u *UserHandler) UpdateUserPass(c fiber.Ctx) error {
 	user, err := u.repo.User.GetUser(c, userID)
 	if err != nil {
 		logrus.Error("user_handler: failed get user pass in db ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	err = service.ValidatePassword(user.Password, currentPass)
@@ -258,7 +271,7 @@ func (u *UserHandler) UpdateUserPass(c fiber.Ctx) error {
 	newHashPass, err := service.HashPassword(newPass)
 	if err != nil {
 		logrus.Error("user handler: failed hashed new pass ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	err = u.repo.User.UpdateUserPass(c, newHashPass, userID)
@@ -272,7 +285,7 @@ func setCookie(c fiber.Ctx, userID string) error {
 	err := sess.Regenerate()
 	if err != nil {
 		logrus.Error("user_handler: failed regenerate session id ", err)
-		return err
+		return c.SendStatus(500)
 	}
 	sess.Set(sessionUserIDKey, userID)
 	sess.Set(sessionAuthenticated, true)
