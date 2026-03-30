@@ -16,11 +16,11 @@ func NewUserRepository(repository *Repository) *UserPGRepository {
 	return &UserPGRepository{repository: repository}
 }
 
-func (u *UserPGRepository) CreateUser(ctx context.Context, name, surname, email, password, imageName, pathImage string) (uuid.UUID, error) {
+func (u *UserPGRepository) CreateUser(ctx context.Context, name, email, password, imageName, pathImage string) (uuid.UUID, error) {
 	var userID uuid.UUID
 
-	query := `INSERT INTO users(name, surname, email, password, image_name, path_image) VALUES ($1 , $2, $3, $4, $5, $6 ) RETURNING id;`
-	row := u.repository.database.QueryRow(ctx, query, name, surname, email, password, imageName, pathImage)
+	query := `INSERT INTO users(name, email, password, image_name, path_image) VALUES ($1 , $2, $3, $4, $5 ) RETURNING id;`
+	row := u.repository.database.QueryRow(ctx, query, name, email, password, imageName, pathImage)
 	err := row.Scan(&userID)
 	if err != nil {
 		logrus.Error("user repository: failed create user ", err)
@@ -45,9 +45,9 @@ func (u *UserPGRepository) GetUserIDAndPassword(ctx context.Context, email strin
 func (u *UserPGRepository) GetUser(ctx context.Context, id uuid.UUID) (entities.User, error) {
 	var user entities.User
 
-	query := `SELECT id, name, surname, email, password ,image_name,path_image FROM users WHERE id = $1;`
+	query := `SELECT id, name, email, password ,image_name,path_image FROM users WHERE id = $1;`
 	row := u.repository.database.QueryRow(ctx, query, id)
-	err := row.Scan(&user.ID, &user.Name, &user.Surname, &user.Email, &user.Password, &user.ImageName, &user.PathImage)
+	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password, &user.ImageName, &user.PathImage)
 	if err != nil {
 		logrus.Error("user repository: failed select all Todo ", err)
 		return entities.User{}, err

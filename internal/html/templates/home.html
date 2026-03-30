@@ -4,8 +4,23 @@
                 <header class="home-lists-head">
                     <div>
                         <p class="home-lists-kicker">Workspace overview</p>
-                        <h1 class="main__tasks home-main-title">My Lists</h1>
+                        <div class="mobile-title-bar">
+                            <button type="button" class="mobile-sidebar-toggle" id="mobileSidebarToggle" aria-controls="appSidebar" aria-expanded="false" aria-label="Open navigation">
+                                <i class="bi bi-list"></i>
+                            </button>
+                            <h1 class="main__tasks home-main-title">My Lists</h1>
+                        </div>
                         <p class="home-lists-subtitle">All lists live here. Add nested tasks from backend later and the layout will render them inside each card.</p>
+                        <div class="mobile-overview-copy">
+                            <div class="mobile-overview-copy__item">
+                                <span>Lists</span>
+                                <strong>{{ if .HomeLists }}{{ len .HomeLists }}{{ else if .List }}{{ len .List }}{{ else }}0{{ end }}</strong>
+                            </div>
+                            <div class="mobile-overview-copy__item">
+                                <span>Tip</span>
+                                <strong>Tap any card to open details</strong>
+                            </div>
+                        </div>
                     </div>
                     <button type="button" class="home-new-list-btn" data-bs-toggle="modal" data-bs-target="#newListModal">
                         + New List

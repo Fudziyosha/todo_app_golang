@@ -35,11 +35,6 @@
           </div>
 
           <div class="mb-4">
-              <label class="form-label">Surname</label>
-              <input type="text" name="user-surname" class="form-control" required>
-          </div>
-
-          <div class="mb-4">
               <label class="form-label">Email</label>
               <input type="email" name="user-email"  class="form-control is-invalid" id="validationEmail" aria-describedby="validationEmailFeedback" required>
               <div id="validationEmailFeedback" class="invalid-feedback">
@@ -52,7 +47,16 @@
               <input type="password" name="user-password"  class="form-control is-invalid" id="validationPassword" aria-describedby="validationPasswordFeedback" required>
               <div id="validationPasswordFeedback" class="invalid-feedback">
                   {{ .Password }}
+                  {{ .Confirm_password }}
               </div>
+          </div>
+
+          <div class="mb-4">
+              <label for="validationConfirmPassword" class="form-label">Confirm Password</label>
+              <input type="password" name="confirm_password" class="form-control is-invalid" id="validationConfirmPassword" required>
+              <div id="validationPasswordFeedback" class="invalid-feedback">
+              {{ .Confirm_password }}
+          </div>
           </div>
 
 

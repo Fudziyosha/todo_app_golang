@@ -55,6 +55,14 @@ func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
 		return c.SendStatus(500)
 	}
 
+	password := c.FormValue("confirm_password")
+	if password != user.Password {
+		errorsField["Confirm_password"] = "Passwords don't match"
+		return c.Render("register", fiber.Map{
+			"Confirm_password": errorsField["Confirm_password"],
+		})
+	}
+
 	err = u.validate.Validate(user)
 	var validationErrors validator.ValidationErrors
 	if errors.As(err, &validationErrors) {
@@ -78,10 +86,10 @@ func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
 		return c.SendStatus(500)
 	}
 
-	userID, err := u.repo.User.CreateUser(c, user.Name, user.Surname, user.Email, hash, defaultAvatar, defaultPathAvatar)
+	userID, err := u.repo.User.CreateUser(c, user.Name, user.Email, hash, defaultAvatar, defaultPathAvatar)
 	if err != nil {
 		logrus.Error("user_handler: failed create user in handler ", err)
-		return err
+		return c.SendStatus(500)
 	}
 
 	stringUserID := userID.String()

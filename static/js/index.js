@@ -33,6 +33,57 @@ document.addEventListener("DOMContentLoaded", function () {
     const panel = document.getElementById("listsPanel");
     const toggleButton = document.getElementById("toggleDeleteListsBtn");
     const cancelButton = document.getElementById("cancelDeleteListsBtn");
+    const mobileSidebar = document.getElementById("appSidebar");
+    const mobileSidebarToggle = document.getElementById("mobileSidebarToggle");
+    const mobileSidebarBackdrop = document.getElementById("mobileSidebarBackdrop");
+    const mobileAwareModals = document.querySelectorAll("#newListModal, #settingsModal");
+
+    const setMobileSidebarState = (isOpen) => {
+        if (!mobileSidebar || !mobileSidebarToggle || !mobileSidebarBackdrop) {
+            return;
+        }
+
+        document.body.classList.toggle("mobile-sidebar-open", isOpen);
+        mobileSidebarToggle.setAttribute("aria-expanded", String(isOpen));
+        mobileSidebarBackdrop.hidden = !isOpen;
+        mobileSidebarBackdrop.classList.toggle("is-visible", isOpen);
+    };
+
+    if (mobileSidebar && mobileSidebarToggle && mobileSidebarBackdrop) {
+        mobileSidebarToggle.addEventListener("click", function () {
+            setMobileSidebarState(true);
+        });
+
+        mobileSidebarBackdrop.addEventListener("click", function () {
+            setMobileSidebarState(false);
+        });
+
+        mobileSidebar.querySelectorAll(".list-row__link, .nav-link").forEach((link) => {
+            link.addEventListener("click", function () {
+                if (window.innerWidth <= 767) {
+                    setMobileSidebarState(false);
+                }
+            });
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                setMobileSidebarState(false);
+            }
+        });
+
+        window.addEventListener("resize", function () {
+            if (window.innerWidth > 767) {
+                setMobileSidebarState(false);
+            }
+        });
+
+        mobileAwareModals.forEach((modal) => {
+            modal.addEventListener("show.bs.modal", function () {
+                setMobileSidebarState(false);
+            });
+        });
+    }
 
     if (!panel || !toggleButton || !cancelButton) {
         return;

@@ -1,12 +1,16 @@
 {{ define "tasks" }}
-<main class="tasks">
 <section class="task-view-shell">
     <div class="task-view-frame">
         <section class="tasks-head">
             <div class="container center-tasks">
                 <div class="row">
                     <div class="col-md-12">
-                        <h1 class="main__tasks">MyTasks</h1>
+                        <div class="mobile-title-bar">
+                            <button type="button" class="mobile-sidebar-toggle" id="mobileSidebarToggle" aria-controls="appSidebar" aria-expanded="false" aria-label="Open navigation">
+                                <i class="bi bi-list"></i>
+                            </button>
+                            <h1 class="main__tasks">MyTasks</h1>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -77,7 +81,10 @@
                                                     value="update_completed"
                                                     class="btn todo-toggle-btn todo-toggle-btn--complete todo-toggle-btn--empty"
                                                     title="Mark as completed"
-                                            ></button>
+                                            >
+                                                <span class="todo-toggle-btn__icon">✓</span>
+                                                <span class="todo-toggle-btn__label">Done</span>
+                                            </button>
                                         </div>
 
                                         <textarea
@@ -87,26 +94,30 @@
                                                 maxlength="400"
                                         >{{ .Description }}</textarea>
 
-                                        <div class="todo-actions">
-                                            <button
-                                                    type="submit"
-                                                    name="action"
-                                                    value="update_todo"
-                                                    class="btn todo-btn-save"
-                                                    title="Save"
-                                            >
-                                                Save
-                                            </button>
+                                        <div class="todo-actions row g-2">
+                                            <div class="col-6">
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="update_todo"
+                                                        class="btn todo-btn-save"
+                                                        title="Save"
+                                                >
+                                                    Save
+                                                </button>
+                                            </div>
 
-                                            <button
-                                                    type="submit"
-                                                    name="action"
-                                                    value="delete"
-                                                    class="btn todo-btn-delete"
-                                                    title="Delete"
-                                            >
-                                                Delete
-                                            </button>
+                                            <div class="col-6">
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="delete"
+                                                        class="btn todo-btn-delete"
+                                                        title="Delete"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </form>
@@ -127,7 +138,8 @@
                                                     class="btn todo-toggle-btn todo-toggle-btn--restore"
                                                     title="Return to Active"
                                             >
-                                                ✓
+                                                <span class="todo-toggle-btn__icon">↺</span>
+                                                <span class="todo-toggle-btn__label">Active</span>
                                             </button>
                                         </div>
 
@@ -139,16 +151,18 @@
                                                 readonly
                                         >{{ .Description }}</textarea>
 
-                                        <div class="todo-actions">
-                                            <button
-                                                    type="submit"
-                                                    name="action"
-                                                    value="delete"
-                                                    class="btn todo-btn-delete"
-                                                    title="Delete"
-                                            >
-                                                Delete
-                                            </button>
+                                        <div class="todo-actions row g-2">
+                                            <div class="col-12">
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="delete"
+                                                        class="btn todo-btn-delete"
+                                                        title="Delete"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </form>
@@ -169,7 +183,8 @@
                                                     class="btn todo-toggle-btn todo-toggle-btn--restore"
                                                     title="Return to Active"
                                             >
-                                                ✓
+                                                <span class="todo-toggle-btn__icon">↺</span>
+                                                <span class="todo-toggle-btn__label">Active</span>
                                             </button>
                                         {{ else }}
                                             <button
@@ -178,7 +193,10 @@
                                                     value="update_completed"
                                                     class="btn todo-toggle-btn todo-toggle-btn--complete todo-toggle-btn--empty"
                                                     title="Mark as completed"
-                                            ></button>
+                                            >
+                                                <span class="todo-toggle-btn__icon">✓</span>
+                                                <span class="todo-toggle-btn__label">Done</span>
+                                            </button>
                                         {{ end }}
                                     </div>
 
@@ -190,28 +208,32 @@
                                             {{ if eq .Status true }}readonly{{ end }}
                                             >{{ .Description }}</textarea>
 
-                                    <div class="todo-actions">
+                                    <div class="todo-actions row g-2">
                                         {{ if eq .Status false }}
+                                            <div class="col-6">
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="update_todo"
+                                                        class="btn todo-btn-save"
+                                                        title="Save"
+                                                >
+                                                    Save
+                                                </button>
+                                            </div>
+                                        {{ end }}
+
+                                        <div class="{{ if eq .Status false }}col-6{{ else }}col-12{{ end }}">
                                             <button
                                                     type="submit"
                                                     name="action"
-                                                    value="update_todo"
-                                                    class="btn todo-btn-save"
-                                                    title="Save"
+                                                    value="delete"
+                                                    class="btn todo-btn-delete"
+                                                    title="Delete"
                                             >
-                                                Save
+                                                Delete
                                             </button>
-                                        {{ end }}
-
-                                        <button
-                                                type="submit"
-                                                name="action"
-                                                value="delete"
-                                                class="btn todo-btn-delete"
-                                                title="Delete"
-                                        >
-                                            Delete
-                                        </button>
+                                        </div>
                                     </div>
                                 </div>
                             </form>
@@ -224,6 +246,5 @@
         </section>
     </div>
 </section>
-</main>
 {{ template "new_list" . }}
 {{ end }}

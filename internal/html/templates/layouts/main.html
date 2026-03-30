@@ -27,7 +27,7 @@
 
 <div class="container sidebar-left">
     <div class="row">
-        <div class="sidebar col-sm-auto">
+        <div class="sidebar col-sm-auto" id="appSidebar">
             <div class="d-flex flex-column flex-nowrap sticky-top sidebar-stack">
                 <ul class="nav nav-pills nav-flush flex-sm-column flex-row flex-nowrap mb-auto mx-auto text-center align-items-center">
                     <li class="nav-item">
@@ -100,6 +100,7 @@
         </div>
     </div>
 </div>
+<div class="mobile-sidebar-backdrop" id="mobileSidebarBackdrop" hidden></div>
 
 <div class="modal fade" id="settingsModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -151,7 +152,9 @@
         </div>
     </div>
 </div>
-{{ embed }}
+<main class="tasks">
+    {{ embed }}
+</main>
 </body>
 <script src="/static/js/index.js"></script>
 </html>
