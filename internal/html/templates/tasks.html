@@ -1,0 +1,250 @@
+{{ define "tasks" }}
+<section class="task-view-shell">
+    <div class="task-view-frame">
+        <section class="tasks-head">
+            <div class="container center-tasks">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mobile-title-bar">
+                            <button type="button" class="mobile-sidebar-toggle" id="mobileSidebarToggle" aria-controls="appSidebar" aria-expanded="false" aria-label="Open navigation">
+                                <i class="bi bi-list"></i>
+                            </button>
+                            <h1 class="main__tasks">MyTasks</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="task-compose-shell">
+                <form class="add-todo-form" method="post">
+                    <div class="task-compose">
+                                <textarea
+                                        id="todoNewText"
+                                        class="form-control add-todo-input auto-grow"
+                                        name="todo_new_text"
+                                        placeholder="Type your task here..."
+                                        maxlength="400"
+                                        rows="1"
+                                        required
+                                ></textarea>
+
+                        <div class="task-compose-actions">
+                            <button class="btn-add" type="submit">+ Add</button>
+                            <button
+                                    type="button"
+                                    class="btn-add task-new-list-btn"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#newListModal"
+                            >
+                                New List
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="container btn-tasks">
+                <div class="row btn-radio">
+                    <div class="filters">
+                        <a href="/list/{{ .ActiveListID }}?filters=all"
+                           class="tab {{ if or (eq .filters `all`) (eq .filters ``) }}is-selected{{ end }}">
+                            All
+                        </a>
+
+                        <a href="/list/{{ .ActiveListID }}?filters=active"
+                           class="tab {{ if eq .filters `active` }}is-selected{{ end }}">
+                            Active
+                        </a>
+
+                        <a href="/list/{{ .ActiveListID }}?filters=completed"
+                           class="tab {{ if eq .filters `completed` }}is-selected{{ end }}">
+                            Completed
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="todos-scroll">
+            {{ with .Todo }}
+                <div class="container todo-list">
+                    {{ if or (eq $.filters ``) (eq $.filters `all`) }}
+                        {{ range . }}
+                            {{ if eq .Status false }}
+                                <form method="post" class="todo-inline-form">
+                                    <input type="hidden" name="todo_id" value="{{ .ID }}">
+
+                                    <div class="todo-item-row">
+                                        <div class="todo-status">
+                                            <button
+                                                    type="submit"
+                                                    name="action"
+                                                    value="update_completed"
+                                                    class="btn todo-toggle-btn todo-toggle-btn--complete todo-toggle-btn--empty"
+                                                    title="Mark as completed"
+                                            >
+                                                <span class="todo-toggle-btn__icon">✓</span>
+                                                <span class="todo-toggle-btn__label">Done</span>
+                                            </button>
+                                        </div>
+
+                                        <textarea
+                                                name="todo_text"
+                                                class="todo-inline-input auto-grow"
+                                                rows="1"
+                                                maxlength="400"
+                                        >{{ .Description }}</textarea>
+
+                                        <div class="todo-actions row g-2">
+                                            <div class="col-6">
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="update_todo"
+                                                        class="btn todo-btn-save"
+                                                        title="Save"
+                                                >
+                                                    Save
+                                                </button>
+                                            </div>
+
+                                            <div class="col-6">
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="delete"
+                                                        class="btn todo-btn-delete"
+                                                        title="Delete"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            {{ end }}
+                        {{ end }}
+
+                        {{ range . }}
+                            {{ if eq .Status true }}
+                                <form method="post" class="todo-inline-form">
+                                    <input type="hidden" name="todo_id" value="{{ .ID }}">
+
+                                    <div class="todo-item-row todo-item-row--completed">
+                                        <div class="todo-status">
+                                            <button
+                                                    type="submit"
+                                                    name="action"
+                                                    value="update_active"
+                                                    class="btn todo-toggle-btn todo-toggle-btn--restore"
+                                                    title="Return to Active"
+                                            >
+                                                <span class="todo-toggle-btn__icon">↺</span>
+                                                <span class="todo-toggle-btn__label">Active</span>
+                                            </button>
+                                        </div>
+
+                                        <textarea
+                                                name="todo_text"
+                                                class="todo-inline-input auto-grow todo-inline-input--completed"
+                                                rows="1"
+                                                maxlength="400"
+                                                readonly
+                                        >{{ .Description }}</textarea>
+
+                                        <div class="todo-actions row g-2">
+                                            <div class="col-12">
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="delete"
+                                                        class="btn todo-btn-delete"
+                                                        title="Delete"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            {{ end }}
+                        {{ end }}
+                    {{ else }}
+                        {{ range . }}
+                            <form method="post" class="todo-inline-form">
+                                <input type="hidden" name="todo_id" value="{{ .ID }}">
+
+                                <div class="todo-item-row {{ if eq .Status true }}todo-item-row--completed{{ end }}">
+                                    <div class="todo-status">
+                                        {{ if eq .Status true }}
+                                            <button
+                                                    type="submit"
+                                                    name="action"
+                                                    value="update_active"
+                                                    class="btn todo-toggle-btn todo-toggle-btn--restore"
+                                                    title="Return to Active"
+                                            >
+                                                <span class="todo-toggle-btn__icon">↺</span>
+                                                <span class="todo-toggle-btn__label">Active</span>
+                                            </button>
+                                        {{ else }}
+                                            <button
+                                                    type="submit"
+                                                    name="action"
+                                                    value="update_completed"
+                                                    class="btn todo-toggle-btn todo-toggle-btn--complete todo-toggle-btn--empty"
+                                                    title="Mark as completed"
+                                            >
+                                                <span class="todo-toggle-btn__icon">✓</span>
+                                                <span class="todo-toggle-btn__label">Done</span>
+                                            </button>
+                                        {{ end }}
+                                    </div>
+
+                                    <textarea
+                                            name="todo_text"
+                                            class="todo-inline-input auto-grow {{ if eq .Status true }}todo-inline-input--completed{{ end }}"
+                                            rows="1"
+                                            maxlength="400"
+                                            {{ if eq .Status true }}readonly{{ end }}
+                                            >{{ .Description }}</textarea>
+
+                                    <div class="todo-actions row g-2">
+                                        {{ if eq .Status false }}
+                                            <div class="col-6">
+                                                <button
+                                                        type="submit"
+                                                        name="action"
+                                                        value="update_todo"
+                                                        class="btn todo-btn-save"
+                                                        title="Save"
+                                                >
+                                                    Save
+                                                </button>
+                                            </div>
+                                        {{ end }}
+
+                                        <div class="{{ if eq .Status false }}col-6{{ else }}col-12{{ end }}">
+                                            <button
+                                                    type="submit"
+                                                    name="action"
+                                                    value="delete"
+                                                    class="btn todo-btn-delete"
+                                                    title="Delete"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        {{ end }}
+                    {{ end }}
+                </div>
+            {{ else }}
+                <p class="empty-todos">You don`t have todo</p>
+            {{ end }}
+        </section>
+    </div>
+</section>
+{{ template "new_list" . }}
+{{ end }}

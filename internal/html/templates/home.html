@@ -1,0 +1,87 @@
+{{ define "home" }}
+<section class="home-lists-shell">
+            <div class="home-lists-frame">
+                <header class="home-lists-head">
+                    <div>
+                        <p class="home-lists-kicker">Workspace overview</p>
+                        <div class="mobile-title-bar">
+                            <button type="button" class="mobile-sidebar-toggle" id="mobileSidebarToggle" aria-controls="appSidebar" aria-expanded="false" aria-label="Open navigation">
+                                <i class="bi bi-list"></i>
+                            </button>
+                            <h1 class="main__tasks home-main-title">My Lists</h1>
+                        </div>
+                        <div class="mobile-overview-copy">
+                            <div class="mobile-overview-copy__item">
+                                <span>Lists</span>
+                                <strong>{{ if .HomeLists }}{{ len .HomeLists }}{{ else if .List }}{{ len .List }}{{ else }}0{{ end }}</strong>
+                            </div>
+                            <div class="mobile-overview-copy__item">
+                                <span>Tip</span>
+                                <strong>Tap any card to open details</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="home-new-list-btn" data-bs-toggle="modal" data-bs-target="#newListModal">
+                        + New List
+                    </button>
+                </header>
+
+                <section class="home-lists-scroll">
+                    {{ with .HomeLists }}
+                        <div class="home-lists-grid">
+                            {{ range . }}
+                                <article class="home-list-card">
+                                    <div class="home-list-card__head">
+                                        <div>
+                                            <p class="home-list-card__eyebrow">List</p>
+                                            <h2 class="home-list-card__title">{{ .Name }}</h2>
+                                        </div>
+                                        <a class="home-list-card__link" href="/list/{{ .ID }}">Open</a>
+                                    </div>
+
+                                    <div class="home-list-card__tasks">
+                                        {{ with .Todos }}
+                                            {{ range . }}
+                                                <div class="home-task-chip {{ if .Status }}is-completed{{ end }}">
+                                                    <span class="home-task-chip__state">{{ if .Status }}Completed{{ else }}Active{{ end }}</span>
+                                                    <span class="home-task-chip__text">{{ .Description }}</span>
+                                                </div>
+                                            {{ end }}
+                                        {{ else }}
+                                            <p class="home-list-card__empty">No tasks in this list yet.</p>
+                                        {{ end }}
+                                    </div>
+                                </article>
+                            {{ end }}
+                        </div>
+                    {{ else }}
+                        {{ if .List }}
+                            <div class="home-lists-grid">
+                                {{ range .List }}
+                                    <article class="home-list-card home-list-card--preview">
+                                        <div class="home-list-card__head">
+                                            <div>
+                                                <p class="home-list-card__eyebrow">List</p>
+                                                <h2 class="home-list-card__title">{{ .Name }}</h2>
+                                            </div>
+                                            <a class="home-list-card__link" href="/list/{{ .ID }}">Open</a>
+                                        </div>
+
+                                        <div class="home-list-card__tasks">
+                                            <p class="home-list-card__empty">Open the list to view tasks.</p>
+                                        </div>
+                                    </article>
+                                {{ end }}
+                            </div>
+                        {{ else }}
+                            <div class="home-empty-state">
+                                <h2 class="home-empty-state__title">No lists yet</h2>
+                                <p class="home-empty-state__text">Create your first list and it will appear here as a separate card.</p>
+                            </div>
+                        {{ end }}
+                    {{ end }}
+                </section>
+            </div>
+        </section>
+{{ template "new_list" . }}
+{{ end }}
