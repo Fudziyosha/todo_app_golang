@@ -20,7 +20,6 @@ const (
 	sessionUserIDKey     = "user_id"
 	sessionAuthenticated = "authenticated"
 	FilePerm             = os.FileMode(0644)
-	defaultAvatar        = "cat_avatar_default.jpg"
 	defaultPathAvatar    = "./static/images/cat_avatar_default.jpg"
 )
 
@@ -86,7 +85,7 @@ func (u *UserHandler) UserRegistration(c fiber.Ctx) error {
 		return c.SendStatus(500)
 	}
 
-	userID, err := u.repo.User.CreateUser(c, user.Name, user.Email, hash, defaultAvatar, defaultPathAvatar)
+	userID, err := u.repo.User.CreateUser(c, user.Name, user.Email, hash, defaultPathAvatar)
 	if err != nil {
 		logrus.Error("user_handler: failed create user in handler ", err)
 		return c.SendStatus(500)
@@ -198,6 +197,10 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 		defer root.Close()
 
 		imageFile, err := image.Open()
+		if err != nil {
+			logrus.Error("user handler: failed open image ", err)
+			return c.SendStatus(500)
+		}
 		bytes, err := io.ReadAll(imageFile)
 		ext := filepath.Ext(image.Filename)
 
@@ -207,7 +210,7 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 			return c.SendStatus(400)
 		}
 
-		if err := root.WriteFile("image_avatar/"+imageName, bytes, FilePerm); err != nil {
+		if err = root.WriteFile("image_avatar/"+imageName, bytes, FilePerm); err != nil {
 			logrus.Error("failed to write file: ", err)
 			return c.SendStatus(500)
 		}
@@ -226,7 +229,7 @@ func (u *UserHandler) UpdateUserNameAndAvatar(c fiber.Ctx) error {
 		}
 		_ = file
 
-		err = u.repo.User.UpdateImage(c, imageName, "./uploads/image_avatar/"+imageName, userID)
+		err = u.repo.User.UpdateImage(c, "./uploads/image_avatar/"+imageName, userID)
 		if err != nil {
 			logrus.Error("user handler: failed update image user ", err)
 			return c.SendStatus(500)

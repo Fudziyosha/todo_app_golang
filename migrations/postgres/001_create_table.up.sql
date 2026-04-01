@@ -5,8 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
                                     name VARCHAR(150) NOT NULL,
                                     email VARCHAR(350) NOT NULL,
                                     password VARCHAR(60) NOT NULL,
-                                    image_name VARCHAR(150),
-                                    path_image VARCHAR(100)
+                                    path_image VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS list (

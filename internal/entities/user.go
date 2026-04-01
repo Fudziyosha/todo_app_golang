@@ -7,6 +7,5 @@ type User struct {
 	Name      string `form:"user-name"`
 	Email     string `form:"user-email" validate:"required,email"`
 	Password  string `form:"user-password" validate:"required,min=8"`
-	ImageName *string
 	PathImage *string
 }
